@@ -850,6 +850,12 @@ img, svg { display: block; }
 .offer__hit[disabled] { cursor: default; }
 
 .total-row__label .link { white-space: nowrap; }
+.cta-inline { flex-direction: row !important; align-items: center; gap: var(--space-16); }
+.cta-inline__total { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+.cta-inline__sum { display: flex; align-items: baseline; gap: var(--space-8); }
+.cta-inline__note { display: flex; flex-wrap: wrap; column-gap: var(--space-8); }
+.cta-inline__note .link { white-space: nowrap; }
+.cta-inline__btn { flex: 1 1 0; min-width: 0; width: auto !important; }
 .refund-row { display: flex; align-items: center; gap: var(--space-12); width: 100%; min-height: 56px; padding: var(--space-8) var(--space-16); border-radius: var(--radius-md); background: var(--color-bg-page); border: 1px solid var(--color-border-subtle); text-align: left; cursor: pointer; }
 .refund-row[disabled] { cursor: default; opacity: .5; }
 .refund-row__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -3331,15 +3337,13 @@ GO.router = (function () {
         label = 'Choose departure ride'; act = 'to-departure';
       }
     }
-    return '<div class="cta-bar cta-bar--total">' +
-      '<div class="total-row">' +
-        '<div class="total-row__text">' +
-          '<div class="total-row__label"><span class="t-label-lg">Total</span><button class="link t-caption" data-act="total">Show details</button></div>' +
-          '<div class="t-caption c-tertiary">' + esc(note) + '</div>' +
-        '</div>' +
-        '<div class="t-h2 nowrap" aria-live="polite">' + money2(sum + c.data.fee) + '</div>' +
+    // one line: total on the left, a full-height button taking the right half (saves vertical space)
+    return '<div class="cta-bar cta-bar--total cta-inline">' +
+      '<div class="cta-inline__total">' +
+        '<div class="cta-inline__sum"><span class="t-label-lg">Total</span><span class="t-h2 nowrap" aria-live="polite">' + money2(sum + c.data.fee) + '</span></div>' +
+        '<div class="cta-inline__note"><button class="link t-caption c-tertiary" data-act="total" aria-label="Price details, incl. transaction fee">incl. transaction fee</button></div>' +
       '</div>' +
-      '<button class="btn btn--primary" data-act="' + act + '">' + label + '</button>' +
+      '<button class="btn btn--primary cta-inline__btn" data-act="' + act + '">' + label + '</button>' +
     '</div>';
   }
 
