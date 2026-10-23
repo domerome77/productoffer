@@ -752,11 +752,14 @@ img, svg { display: block; }
 
 .offer-group { display: flex; flex-direction: column; gap: var(--space-12); }
 .offer-group + .offer-group { margin-top: var(--space-16); }
+.offer .offer__head { position: relative; z-index: 1; pointer-events: none; padding-bottom: var(--space-4); margin-top: calc(var(--space-12) - var(--layout-card-padding)); } /* 12px above = 4 + 8 below */
+.offer .offer__head .link { pointer-events: auto; }
+.offer-group + .offer-group { margin-top: 0; }
 .offer-group__id { display: flex; align-items: center; gap: var(--space-12); min-width: 0; }
-.offer-group__tile { flex-shrink: 0; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-.offer-group__tile--shared { background: var(--color-bg-success-subtle); }
+.offer-group__tile { flex-shrink: 0; width: 24px; height: 40px; border-radius: 0; display: flex; align-items: center; justify-content: center; }
+.offer-group__tile--shared { background: none; }
 .offer-group__tile--shared .icon { color: var(--color-icon-success); }
-.offer-group__tile--private { background: var(--color-bg-brand-subtle); }
+.offer-group__tile--private { background: none; }
 .offer-group__tile--private .icon { color: var(--color-icon-brand); }
 .offer-group__names { display: flex; flex-direction: column; min-width: 0; }
 .offer-group__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4) var(--space-8); }
@@ -800,8 +803,7 @@ img, svg { display: block; }
 .offer__win .icon { position: absolute; right: 8px; pointer-events: none; }
 .offer__dur { height: 24px; display: flex; align-items: center; }
 .offer__dur.t-caption { font-size: 11px; }
-.offer .offer__stop > .t-label-lg { display: inline-block; transform-origin: left center; transition: transform .15s; }
-.offer.is-selected .offer__stop > .t-label-lg { transform: scale(1.1); margin-right: calc(1ch * 0.1 * var(--tw, 5)); } /* grows without moving the labels */
+.offer .offer__stop > .t-label-lg { font-size: calc(var(--font-size-label-lg) * 1.1); } /* same size selected or not */ /* grows without moving the labels */
 .offer .offer__stop > .t-body { font-size: calc(var(--font-size-body) * 1.1); }
 .offer__price { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
 .offer__amount { display: flex; align-items: baseline; white-space: nowrap; }
@@ -817,7 +819,7 @@ img, svg { display: block; }
 @media (hover: hover) { .offer:hover .offer__select { background: var(--color-bg-subtle); } }
 .offer__select--quiet { opacity: .55; border-color: var(--color-border-input); color: var(--color-text-secondary); background: transparent; }
 @media (hover: hover) { .offer:hover .offer__select--quiet { opacity: 1; } }
-.shv { position: relative; z-index: 1; pointer-events: auto; display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4); }
+.shv { position: relative; z-index: 1; pointer-events: auto; display: flex; flex-direction: column; gap: var(--space-4); margin-top: calc(-1 * var(--space-4)); margin-bottom: var(--space-8); }
 .shv__head { display: flex; justify-content: space-between; gap: var(--space-8); }
 .shv__opts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; border: 1px solid var(--color-border-input); border-radius: var(--radius-md); background: var(--color-bg-page); overflow: hidden; }
 .shv__opt + .shv__opt { border-left: 1px solid var(--color-border-input); }
@@ -825,6 +827,7 @@ img, svg { display: block; }
 .shv__opt .t-caption { color: var(--color-text-secondary); }
 @media (hover: hover) { .shv__opt:not([disabled]):hover { background: var(--color-bg-subtle); } }
 .offer.is-selected .shv__opt[aria-checked="true"] { background: var(--color-action-success); color: var(--color-text-inverse); }
+.offer:not(.is-selected) .shv__opt[aria-checked="true"] { background: var(--color-bg-muted); } /* Shared not picked: the last chosen step stays faintly marked */
 .offer.is-selected .shv__opt[aria-checked="true"] .t-caption { color: var(--color-text-inverse); }
 .shv__opt[disabled] { cursor: default; color: var(--color-text-disabled); }
 .shv__opt:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 1px; }
@@ -3191,15 +3194,16 @@ GO.router = (function () {
   }
 
   // Variant A: route rail with places, price on the right, ride type and (i) below
-  function cardA(c, o, isSel, extra) {
+  function cardA(c, o, isSel, extra, head) {
     return '<div class="offer' + (isSel ? ' is-selected' : '') + (o.soldOut ? ' is-off' : '') + '">' + hit(o, isSel) +
       badge(o, isSel) +
       // content (gap 8): body, then footer with captions (body-sm, one style) and (i) on the first line
       '<div class="offer__content">' +
+        (head || '') +
+        (extra || '') + // Shared: the pick-up time scale sits on top of the card
         // selected: no type line, the (i) sits under the price so the card keeps its height
         '<div class="offer__body">' + stops(c.q, o) + (isSel || o.soldOut ? price(o) : price(o).replace(/<\/div>$/, '<span class="offer__select offer__select--quiet t-label" aria-hidden="true">Select</span></div>')) + '</div>' +
         (o.soldOut ? '<div class="offer__type t-body-sm c-secondary"><span>No seats left for this window.</span></div>' : '') +
-        (extra || '') +
       '</div>' +
     '</div>';
   }
@@ -3218,18 +3222,18 @@ GO.router = (function () {
     const ok = list.filter(o => !o.soldOut);
     return ok.find(o => o.id === selId) || ok.find(o => o.id === GO.store.get().sharedVar) || ok.find(o => o.wins) || ok[0] || list[0];
   }
-  function sharedCard(c, list, selId) {
+  function sharedCard(c, list, selId, head) {
     const o = sharedShown(c, list, selId);
-    const opts = sharedOpts(list);
+    const opts = sharedOpts(list).reverse(); // cheapest (3h window) first, Fix time last
     const isOn = x => x.id === o.id && (o.wins ? x.w === o.window : true);
     const seg = opts.length > 1 ? '<div class="shv">' +
-        '<div class="shv__head t-caption c-secondary"><span>Pick-up flexibility</span><span style="position: relative; left: -2px">be flexible, <strong style="font-weight: var(--font-weight-bold)">discount your price</strong></span></div>' +
+        '<div class="shv__head t-caption c-secondary"><span>be flexible, <strong style="font-weight: var(--font-weight-bold)">discount your price</strong></span></div>' +
         '<div class="shv__opts" role="radiogroup" aria-label="Pick-up time">' + opts.map(x =>
           '<button class="shv__opt" role="radio" aria-checked="' + isOn(x) + '" data-act="shvar" data-id="' + x.id + '" data-w="' + x.w + '"' + (x.soldOut ? ' disabled' : '') +
             ' aria-label="' + (x.w ? 'Pick-up window ' + x.label : 'Fixed pick-up time') + ', ' + (x.soldOut ? 'sold out' : money(x.unit) + ' per person') + '">' +
             '<span class="t-label">' + x.label + '</span><span class="t-caption">' + (x.soldOut ? 'Sold out' : money(x.unit)) + '</span></button>').join('') +
         '</div></div>' : '';
-    return cardA(c, o, o.id === selId, seg);
+    return cardA(c, o, o.id === selId, seg, head);
   }
 
   // 100% Money refund, attached to the selected card: it covers the ride(s) picked
@@ -3254,15 +3258,16 @@ GO.router = (function () {
   function group(c, kind, list, selId) {
     if (!list.length) return '';
     const shared = kind === 'shared';
-    return '<section class="offer-group" aria-labelledby="g-' + kind + '">' +
-      '<div class="offer-group__head">' +
+    // the heading (icon, title, link) sits inside the card: two choices, each one whole card
+    const head = '<div class="offer-group__head offer__head">' +
         '<div class="offer-group__id">' +
           '<span class="offer-group__tile offer-group__tile--' + kind + '" aria-hidden="true">' + ic(shared ? 'shuttle' : 'car', 24) + '</span>' +
           '<h2 id="g-' + kind + '" class="offer-group__title t-h3">' + (shared ? 'Shared transfer' : 'Private transfer') + '</h2>' +
         '</div>' +
         '<button class="link t-label" style="color: var(--color-text-secondary); font-weight: var(--font-weight-regular)" data-act="about" data-kind="' + kind + '">' + (shared ? 'How it works' : 'What’s included') + '</button>' +
-      '</div>' +
-      '<div class="offer-group__list" role="radiogroup" aria-labelledby="g-' + kind + '">' + (shared ? sharedCard(c, list, selId) : list.map(o => card(c, o, o.id === selId)).join('')) + '</div>' +
+      '</div>';
+    return '<section class="offer-group" aria-labelledby="g-' + kind + '">' +
+      '<div class="offer-group__list" role="radiogroup" aria-labelledby="g-' + kind + '">' + (shared ? sharedCard(c, list, selId, head) : list.map(o => cardA(c, o, o.id === selId, '', head)).join('')) + '</div>' +
     '</section>';
   }
 
@@ -3371,8 +3376,8 @@ GO.router = (function () {
         const f = c.sel.filter;
         const body = c.data.empty
           ? emptyState(c)
-          : group(c, 'shared', c.data.shared, o && o.id) +
-            group(c, 'private', c.data.priv, o && o.id) +
+          : group(c, 'private', c.data.priv, o && o.id) +
+            group(c, 'shared', c.data.shared, o && o.id) +
             trust('all');
         return header(c) + '<main class="offers-main">' + body + '</main>' + ctaBar(c, o);
       },
