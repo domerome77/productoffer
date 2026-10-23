@@ -3048,16 +3048,16 @@ GO.router = (function () {
   function allOffers(data) { return data.shared.concat(data.priv, data.empty ? data.empty.alternatives : []); }
   function defaultOffer(data) {
     if (data.empty) return null;
-    const flex = data.shared.find(o => o.wins && !o.soldOut); // Shared, 2h window by default
-    const cheapest = data.shared.find(o => o.cheapest);
-    return (flex || cheapest || data.priv[0] || {}).id || null;
+    const fixed = data.shared.find(o => o.kind === 'fixed' && !o.soldOut); // Shared, Fixed time by default
+    const flex = data.shared.find(o => o.wins && !o.soldOut);
+    return (fixed || flex || data.priv[0] || {}).id || null;
   }
   // A new search starts with the cheapest ride picked and the filter on All
   function syncSelection(c) {
     if (!c.data || c.sel.key === c.data.key) return;
     const fo = c.data.shared.find(o => o.wins);
     const w2 = fo && fo.wins.find(v => v.w === 120);
-    if (w2) { fo.window = 120; if (fo.winEnd != null) { fo.pickFrom = fo.winEnd - 120; fo.pickTo = fo.winEnd; } else fo.pickTo = fo.pickFrom + 120; fo.unit = w2.unit; fo.total = w2.unit * fo.pax; GO.store.set({ flexWin: 120, sharedVar: fo.id }); }
+    if (w2) { fo.window = 120; if (fo.winEnd != null) { fo.pickFrom = fo.winEnd - 120; fo.pickTo = fo.winEnd; } else fo.pickTo = fo.pickFrom + 120; fo.unit = w2.unit; fo.total = w2.unit * fo.pax; GO.store.set({ flexWin: 120, sharedVar: 'fixed' }); }
     setSel(c.leg, { key: c.data.key, id: defaultOffer(c.data), filter: 'all' });
     Object.assign(c, ctx(c.leg));
   }
@@ -3117,9 +3117,9 @@ GO.router = (function () {
     return '<div class="offer__route">' +
       '<div class="rail" aria-hidden="true"><span class="rail__dot"></span><span class="rail__line"></span><span class="rail__dot"></span></div>' +
       '<div class="offer__stops">' +
-        '<div class="offer__stop">' + '<span class="t-label-lg nowrap">' + pickLabel(o) + '</span>' + '<span class="t-body">' + esc(placeLabel(q.from)) + '</span></div>' +
+        '<div class="offer__stop">' + '<span class="t-label-lg nowrap">' + pickLabel(o) + '</span>' + '<span class="t-body">Pick-up</span></div>' +
         '<div class="offer__dur t-caption c-tertiary">' + fmtDur(rideDur(o)) + '</div>' +
-        '<div class="offer__stop"><span class="t-label-lg nowrap">' + fromMin(o.arrival) + '</span><span class="t-body">' + esc(placeLabel(q.to)) + '</span></div>' +
+        '<div class="offer__stop"><span class="t-label-lg nowrap">' + fromMin(o.arrival) + '</span><span class="t-body">Latest drop-off</span></div>' +
       '</div>' +
     '</div>';
   }
@@ -3189,7 +3189,7 @@ GO.router = (function () {
     const opts = sharedOpts(list);
     const isOn = x => x.id === o.id && (o.wins ? x.w === o.window : true);
     const seg = opts.length > 1 ? '<div class="shv">' +
-        '<div class="shv__head t-caption c-secondary"><span>Fixed time</span><span>More flexible, lower price</span></div>' +
+        '<div class="shv__head t-caption c-secondary"><span>Fixed time</span><span>Be flexible, <strong style="font-weight: var(--font-weight-bold)">lower your price</strong></span></div>' +
         '<div class="shv__opts" role="radiogroup" aria-label="Pick-up time">' + opts.map(x =>
           '<button class="shv__opt" role="radio" aria-checked="' + isOn(x) + '" data-act="shvar" data-id="' + x.id + '" data-w="' + x.w + '"' + (x.soldOut ? ' disabled' : '') +
             ' aria-label="' + (x.w ? 'Pick-up window ' + x.label : 'Fixed pick-up time') + ', ' + (x.soldOut ? 'sold out' : money(x.unit) + ' per person') + '">' +
