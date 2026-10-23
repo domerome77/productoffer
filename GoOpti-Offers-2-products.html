@@ -3034,12 +3034,16 @@ GO.router = (function () {
   function allOffers(data) { return data.shared.concat(data.priv, data.empty ? data.empty.alternatives : []); }
   function defaultOffer(data) {
     if (data.empty) return null;
+    const flex = data.shared.find(o => o.wins && !o.soldOut); // Shared, 2h window by default
     const cheapest = data.shared.find(o => o.cheapest);
-    return (cheapest || data.priv[0] || {}).id || null;
+    return (flex || cheapest || data.priv[0] || {}).id || null;
   }
   // A new search starts with the cheapest ride picked and the filter on All
   function syncSelection(c) {
     if (!c.data || c.sel.key === c.data.key) return;
+    const fo = c.data.shared.find(o => o.wins);
+    const w2 = fo && fo.wins.find(v => v.w === 120);
+    if (w2) { fo.window = 120; fo.pickTo = fo.pickFrom + 120; fo.unit = w2.unit; fo.total = w2.unit * fo.pax; GO.store.set({ flexWin: 120, sharedVar: fo.id }); }
     setSel(c.leg, { key: c.data.key, id: defaultOffer(c.data), filter: 'all' });
     Object.assign(c, ctx(c.leg));
   }
@@ -3157,7 +3161,7 @@ GO.router = (function () {
   function sharedOpts(list) {
     const opts = [];
     const fx = list.find(o => o.kind === 'fixed');
-    if (fx) opts.push({ id: fx.id, w: 0, label: 'Exact', unit: fx.unit, soldOut: fx.soldOut });
+    if (fx) opts.push({ id: fx.id, w: 0, label: 'Fixed', unit: fx.unit, soldOut: fx.soldOut });
     list.filter(o => o.wins).forEach(o => o.wins.forEach(x => opts.push({ id: o.id, w: x.w, label: (x.w / 60) + 'h', unit: x.unit, soldOut: o.soldOut })));
     return opts;
   }
@@ -3170,10 +3174,10 @@ GO.router = (function () {
     const opts = sharedOpts(list);
     const isOn = x => x.id === o.id && (o.wins ? x.w === o.window : true);
     const seg = opts.length > 1 ? '<div class="shv">' +
-        '<div class="shv__head t-caption c-secondary"><span>Exact time</span><span>More flexible, lower price</span></div>' +
+        '<div class="shv__head t-caption c-secondary"><span>Fixed time</span><span>More flexible, lower price</span></div>' +
         '<div class="shv__opts" role="radiogroup" aria-label="Pick-up time">' + opts.map(x =>
           '<button class="shv__opt" role="radio" aria-checked="' + isOn(x) + '" data-act="shvar" data-id="' + x.id + '" data-w="' + x.w + '"' + (x.soldOut ? ' disabled' : '') +
-            ' aria-label="' + (x.w ? 'Pick-up window ' + x.label : 'Exact pick-up time') + ', ' + (x.soldOut ? 'sold out' : money(x.unit) + ' per person') + '">' +
+            ' aria-label="' + (x.w ? 'Pick-up window ' + x.label : 'Fixed pick-up time') + ', ' + (x.soldOut ? 'sold out' : money(x.unit) + ' per person') + '">' +
             '<span class="t-label">' + x.label + '</span><span class="t-caption">' + (x.soldOut ? 'Sold out' : money(x.unit)) + '</span></button>').join('') +
         '</div></div>' : '';
     return cardA(c, o, o.id === selId, seg);
@@ -3318,8 +3322,8 @@ GO.router = (function () {
         const f = c.sel.filter;
         const body = c.data.empty
           ? emptyState(c)
-          : group(c, 'private', c.data.priv, o && o.id) +
-            group(c, 'shared', c.data.shared, o && o.id) +
+          : group(c, 'shared', c.data.shared, o && o.id) +
+            group(c, 'private', c.data.priv, o && o.id) +
             trust('all');
         return header(c) + '<main class="offers-main">' + body + '</main>' + ctaBar(c, o);
       },
@@ -5437,27 +5441,9 @@ GO.router = (function () {
 
   if (GO.frame === 'outer') return; // the app runs inside the phone frame
 
-  // Offers-only export: a demo search, navigation kept to offers, their sheets and Edit search
-  (function () {
-    const st = GO.store.get();
-    if (!st.from || !st.to || !st.date || !st.time) {
-      GO.store.set({ from: GO.api.place('lj-slovenska'), to: GO.api.place('VCE'), date: GO.u.addDays(GO.api.bookingWindow().min, 7), time: '10:15', timeMode: 'dropoff', adults: 1, children: 0 });
-    }
-    GO.store.set({ offersScenario: 'normal' }); // the export always shows every product with its price
-    const ok = p => p.startsWith('/offers') || p.startsWith('/edit');
-    const cur = () => (location.hash.replace(/^#/, '') || '/').split('?')[0];
-    if (!ok(cur())) history.replaceState({ depth: 0 }, '', '#/offers');
-    const go = GO.router.go, back = GO.router.back;
-    GO.router.go = function (p, o) {
-      if (!ok(p.split('?')[0])) { if (GO.u.toast) GO.u.toast('This preview shows the offers only'); return; }
-      return go.call(this, p, o);
-    };
-    GO.router.back = function () {
-      if (((history.state && history.state.depth) || 0) > 0) return back.call(this);
-      return go.call(this, '/offers', { replace: true });
-    };
-    window.addEventListener('popstate', () => { if (!ok(cur())) go('/offers', { replace: true }); });
-  })();
+  // every load starts on the search; all products show with prices (no sold-out demo)
+  GO.store.set({ offersScenario: 'normal', flexWin: 120, sharedVar: '', sel: { out: { key: '', id: null, filter: 'all' }, ret: { key: '', id: null, filter: 'all' } } }); // Shared, flexible 2h is picked on every load
+  history.replaceState({ depth: 0 }, '', '#/');
 
   GO.router.start();
 
