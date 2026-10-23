@@ -5443,6 +5443,7 @@ GO.router = (function () {
     if (!st.from || !st.to || !st.date || !st.time) {
       GO.store.set({ from: GO.api.place('lj-slovenska'), to: GO.api.place('VCE'), date: GO.u.addDays(GO.api.bookingWindow().min, 7), time: '10:15', timeMode: 'dropoff', adults: 1, children: 0 });
     }
+    GO.store.set({ offersScenario: 'normal' }); // the export always shows every product with its price
     const ok = p => p.startsWith('/offers') || p.startsWith('/edit');
     const cur = () => (location.hash.replace(/^#/, '') || '/').split('?')[0];
     if (!ok(cur())) history.replaceState({ depth: 0 }, '', '#/offers');
