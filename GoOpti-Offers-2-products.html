@@ -3215,7 +3215,7 @@ GO.router = (function () {
     const opts = sharedOpts(list);
     const isOn = x => x.id === o.id && (o.wins ? x.w === o.window : true);
     const seg = opts.length > 1 ? '<div class="shv">' +
-        '<div class="shv__head t-caption c-secondary"><span>Your pick-up flexibility</span><span style="position: relative; left: -2px">be flexible, <strong style="font-weight: var(--font-weight-bold)">discount your price</strong></span></div>' +
+        '<div class="shv__head t-caption c-secondary"><span>Pick-up flexibility</span><span style="position: relative; left: -2px">be flexible, <strong style="font-weight: var(--font-weight-bold)">discount your price</strong></span></div>' +
         '<div class="shv__opts" role="radiogroup" aria-label="Pick-up time">' + opts.map(x =>
           '<button class="shv__opt" role="radio" aria-checked="' + isOn(x) + '" data-act="shvar" data-id="' + x.id + '" data-w="' + x.w + '"' + (x.soldOut ? ' disabled' : '') +
             ' aria-label="' + (x.w ? 'Pick-up window ' + x.label : 'Fixed pick-up time') + ', ' + (x.soldOut ? 'sold out' : money(x.unit) + ' per person') + '">' +
