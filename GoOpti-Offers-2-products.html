@@ -3202,7 +3202,7 @@ GO.router = (function () {
   function sharedOpts(list) {
     const opts = [];
     const fx = list.find(o => o.kind === 'fixed');
-    if (fx) opts.push({ id: fx.id, w: 0, label: 'Fixed', unit: fx.unit, soldOut: fx.soldOut });
+    if (fx) opts.push({ id: fx.id, w: 0, label: 'Fix time', unit: fx.unit, soldOut: fx.soldOut });
     list.filter(o => o.wins).forEach(o => o.wins.forEach(x => opts.push({ id: o.id, w: x.w, label: (x.w / 60) + 'h', unit: x.unit, soldOut: o.soldOut })));
     return opts;
   }
@@ -3215,7 +3215,7 @@ GO.router = (function () {
     const opts = sharedOpts(list);
     const isOn = x => x.id === o.id && (o.wins ? x.w === o.window : true);
     const seg = opts.length > 1 ? '<div class="shv">' +
-        '<div class="shv__head t-caption c-secondary"><span>Fixed time</span><span>Be flexible, <strong style="font-weight: var(--font-weight-bold)">lower your price</strong></span></div>' +
+        '<div class="shv__head t-caption c-secondary"><span>Your pick-up flexibility</span><span style="position: relative; left: -2px">be flexible, <strong style="font-weight: var(--font-weight-bold)">discount your price</strong></span></div>' +
         '<div class="shv__opts" role="radiogroup" aria-label="Pick-up time">' + opts.map(x =>
           '<button class="shv__opt" role="radio" aria-checked="' + isOn(x) + '" data-act="shvar" data-id="' + x.id + '" data-w="' + x.w + '"' + (x.soldOut ? ' disabled' : '') +
             ' aria-label="' + (x.w ? 'Pick-up window ' + x.label : 'Fixed pick-up time') + ', ' + (x.soldOut ? 'sold out' : money(x.unit) + ' per person') + '">' +
