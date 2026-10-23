@@ -801,7 +801,7 @@ img, svg { display: block; }
 .offer__dur { height: 24px; display: flex; align-items: center; }
 .offer__dur.t-caption { font-size: 11px; }
 .offer .offer__stop > .t-label-lg { display: inline-block; transform-origin: left center; transition: transform .15s; }
-.offer.is-selected .offer__stop > .t-label-lg { transform: scale(1.1); } /* grows without moving the labels */
+.offer.is-selected .offer__stop > .t-label-lg { transform: scale(1.1); margin-right: calc(1ch * 0.1 * var(--tw, 5)); } /* grows without moving the labels */
 .offer .offer__stop > .t-body { font-size: calc(var(--font-size-body) * 1.1); }
 .offer__price { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
 .offer__amount { display: flex; align-items: baseline; white-space: nowrap; }
@@ -3144,7 +3144,7 @@ GO.router = (function () {
     return '<div class="offer__route">' +
       '<div class="rail" aria-hidden="true"><span class="rail__dot"></span><span class="rail__line"></span><span class="rail__dot"></span></div>' +
       '<div class="offer__stops">' +
-        '<div class="offer__stop">' + '<span class="t-label-lg nowrap">' + pickLabel(o) + '</span>' + '<span class="t-body">Pick-up</span></div>' +
+        '<div class="offer__stop">' + '<span class="t-label-lg nowrap" style="--tw: ' + pickLabel(o).length + '">' + pickLabel(o) + '</span>' + '<span class="t-body">Pick-up</span></div>' +
         '<div class="offer__dur t-caption c-tertiary">' + fmtDur(rideDur(o)) + '</div>' +
         '<div class="offer__stop"><span class="t-label-lg nowrap">' + fromMin(o.arrival) + '</span><span class="t-body">Latest drop-off</span></div>' +
       '</div>' +
