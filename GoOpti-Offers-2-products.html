@@ -752,6 +752,13 @@ img, svg { display: block; }
 
 .offer-group { display: flex; flex-direction: column; gap: var(--space-12); }
 .offer-group + .offer-group { margin-top: var(--space-16); }
+.offer-group__id { display: flex; align-items: center; gap: var(--space-12); min-width: 0; }
+.offer-group__tile { flex-shrink: 0; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+.offer-group__tile--shared { background: var(--color-bg-success-subtle); }
+.offer-group__tile--shared .icon { color: var(--color-icon-success); }
+.offer-group__tile--private { background: var(--color-bg-brand-subtle); }
+.offer-group__tile--private .icon { color: var(--color-icon-brand); }
+.offer-group__names { display: flex; flex-direction: column; min-width: 0; }
 .offer-group__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4) var(--space-8); }
 .offer-group__title { display: flex; align-items: center; gap: var(--space-8); font-weight: var(--font-weight-bold); font-size: calc(var(--font-size-h3) * 1.03); }
 .offer-group__list { display: flex; flex-direction: column; gap: var(--space-12); }
@@ -3222,7 +3229,11 @@ GO.router = (function () {
     const shared = kind === 'shared';
     return '<section class="offer-group" aria-labelledby="g-' + kind + '">' +
       '<div class="offer-group__head">' +
-        '<h2 id="g-' + kind + '" class="offer-group__title t-h3">' + (shared ? ic('shuttle', 24) : ic('car', 22.8).replace('<svg', '<svg style="position: relative; top: -1px"')) + (shared ? 'Shared transfer' : 'Private transfer') + '</h2>' +
+        '<div class="offer-group__id">' +
+          '<span class="offer-group__tile offer-group__tile--' + kind + '" aria-hidden="true">' + ic(shared ? 'shuttle' : 'car', 24) + '</span>' +
+          '<div class="offer-group__names"><h2 id="g-' + kind + '" class="offer-group__title t-h3">' + (shared ? 'Shared transfer' : 'Private transfer') + '</h2>' +
+          '<span class="t-body-sm c-secondary">' + (shared ? 'Share the van, pay less' : 'The whole van just for you') + '</span></div>' +
+        '</div>' +
         '<button class="link t-label" style="color: var(--color-text-tertiary); font-weight: var(--font-weight-regular)" data-act="about" data-kind="' + kind + '">' + (shared ? 'How it works' : 'What’s included') + '</button>' +
       '</div>' +
       '<div class="offer-group__list" role="radiogroup" aria-labelledby="g-' + kind + '">' + (shared ? sharedCard(c, list, selId) : list.map(o => card(c, o, o.id === selId)).join('')) + '</div>' +
