@@ -799,6 +799,10 @@ img, svg { display: block; }
 .offer__win select:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 .offer__win .icon { position: absolute; right: 8px; pointer-events: none; }
 .offer__dur { height: 24px; display: flex; align-items: center; }
+.offer__dur.t-caption { font-size: 11px; }
+.offer .offer__stop > .t-label-lg { display: inline-block; transform-origin: left center; transition: transform .15s; }
+.offer.is-selected .offer__stop > .t-label-lg { transform: scale(1.1); } /* grows without moving the labels */
+.offer .offer__stop > .t-body { font-size: calc(var(--font-size-body) * 1.1); }
 .offer__price { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
 .offer__amount { display: flex; align-items: baseline; white-space: nowrap; }
 .offer__cur { font-size: var(--font-size-label-lg); line-height: var(--line-height-label-lg); font-weight: 600; color: var(--color-text-secondary); }
@@ -860,10 +864,10 @@ img, svg { display: block; }
 }
 
 /* Shared/general promises: no box, small, set apart from the Private group above */
-.trust-card--plain { background: none; padding: 0; margin-top: var(--space-16); gap: var(--space-8); }
+.trust-card--plain { background: none; padding: 0; margin-top: 0; gap: var(--space-8); }
 .trust-card__kicker { text-transform: uppercase; letter-spacing: .06em; font-weight: var(--font-weight-bold); }
-.trust-card--plain .check-item .icon { width: 16px; height: 16px; }
-.trust-card--plain .check-item .t-body-sm { font-size: var(--font-size-caption); line-height: var(--line-height-caption); color: var(--color-text-secondary); }
+.trust-card--plain .check-item .icon { width: 18px; height: 18px; }
+.trust-card--plain .check-item .t-body-sm { color: var(--color-text-secondary); }
 
 /* Add your house number (2320:29071): street with a live chip, small number field, map placeholder */
 .house-row { display: flex; align-items: flex-start; gap: var(--space-12); }
@@ -1023,6 +1027,19 @@ img, svg { display: block; }
 .nw-cover__item > .icon { flex-shrink: 0; }
 .nw-cover__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); }
 .nw-terms { align-self: flex-start; }
+.xpk-list { display: flex; flex-direction: column; gap: var(--space-12); }
+.xpk { display: flex; flex-direction: column; gap: var(--space-12); padding: var(--space-16); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); background: var(--color-bg-page); }
+.xpk.is-on { border-color: var(--color-border-success); background: var(--color-bg-success-subtle); }
+.xpk__head { display: flex; align-items: flex-start; gap: var(--space-12); }
+.xpk__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); }
+.xpk__more { flex-shrink: 0; color: var(--color-text-tertiary); font-weight: var(--font-weight-regular); white-space: nowrap; }
+.xpk__row { display: flex; align-items: center; gap: var(--space-12); width: 100%; min-height: 48px; padding-top: var(--space-12); border-top: 1px solid var(--color-border-subtle); text-align: left; cursor: pointer; }
+.xpk.is-on .xpk__row { border-top-color: var(--color-border-success); }
+.xpk__label { flex: 1; min-width: 0; color: var(--color-text-secondary); }
+.xpk.is-on .xpk__label { color: var(--color-text-success); }
+.xpk__row[aria-checked="true"] .toggle { background: var(--color-action-success); }
+.xpk__row[aria-checked="true"] .toggle__knob { transform: translateX(16px); }
+.xpk__row:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 .nw { display: flex; flex-direction: column; gap: var(--space-16); padding: var(--layout-card-padding); border-radius: var(--radius-lg); background: var(--color-bg-success-subtle); }
 .nw__head { display: flex; gap: var(--space-8); }
 .nw__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-8); }
@@ -2037,6 +2054,7 @@ GO.router = (function () {
     '/extras/flight': 'extras-flight',
     '/extras/flight/manual': 'extras-flight-manual',
     '/extras/no-worries': 'extras-no-worries',
+    '/extras/refund': 'extras-refund',
     '/extras/seats': 'extras-seats',
     '/extras/invoice': 'extras-invoice',
     '/details': 'details',
@@ -3172,7 +3190,6 @@ GO.router = (function () {
         '<div class="offer__body">' + stops(c.q, o) + (isSel || o.soldOut ? price(o) : price(o).replace(/<\/div>$/, '<span class="offer__select offer__select--quiet t-label" aria-hidden="true">Select</span></div>')) + '</div>' +
         (o.soldOut ? '<div class="offer__type t-body-sm c-secondary"><span>No seats left for this window.</span></div>' : '') +
         (extra || '') +
-        (isSel && !o.soldOut ? refundIn(c, o) : '') +
       '</div>' +
     '</div>';
   }
@@ -3313,7 +3330,6 @@ GO.router = (function () {
         label = 'Choose departure ride'; act = 'to-departure';
       }
     }
-    if (GO.store.get().refund) { sum += Math.round(sum * 15) / 100; note += ', 100% Money refund'; }
     return '<div class="cta-bar cta-bar--total">' +
       '<div class="total-row">' +
         '<div class="total-row__text">' +
@@ -3699,7 +3715,7 @@ GO.router = (function () {
       if (!lines.length) return sheetHead('Price details') + '<div class="sheet__body"><p class="t-body c-secondary">Choose a ride first.</p></div>' + sheetFoot('Close');
       const fee = c.data ? c.data.fee : 2.4;
       const rides = lines.reduce((a, x) => a + x.o.total, 0);
-      const refund = GO.store.get().refund ? Math.round(rides * 15) / 100 : 0;
+      const refund = 0; // 100% Money refund is added on Finish booking
       const sum = rides + refund + fee;
       const line = x => {
         const qty = x.o.kind === 'private' ? '1 vehicle' : paxLabel(c.s) + (x.o.pax > 1 ? ' × ' + money(x.o.unit) : '');
@@ -3923,21 +3939,27 @@ GO.router = (function () {
     ).join('<hr class="divider">') + '</section>';
   }
 
-  const NW_FACTS = ['We send a new transfer', 'Free rebooking if the airline moves your flight', 'We buy you a new flight ticket if you’re late because of a traffic jam'];
-  function noWorries(s, e) {
-    const pax = s.adults + s.children;
-    const price = money2(api.NO_WORRIES * pax);
-    return '<section class="nw" aria-labelledby="nw-title">' +
-      '<div class="nw__head"><div class="nw__text"><h2 id="nw-title" class="nw__title">Absolutely<br>No Worries package</h2>' +
-        '<p class="t-body-sm c-secondary">If you miss your ride or your plane, we sort it out:</p></div>' +
-        '<span class="nw__art" aria-hidden="true">' + GO.ART_NO_WORRIES + '</span></div>' +
-      (e.nw
-        ? '<div class="nw__added" role="status">' + ic('check', 24, 'icon--success') + '<span class="nw__added-label">Added, ' + price + '</span>' +
-          '<button class="link t-label" data-act="nw" aria-label="Remove No Worries package">Remove</button></div>'
-        : '<button class="btn btn--success" data-act="nw">Add for ' + price + '</button>') +
-      '<ul class="check-list check-list--tight">' + NW_FACTS.map(t => '<li class="check-item">' + ic('check-circle', 20, 'icon--success') + '<span class="t-body-sm">' + t + '</span></li>').join('') + '</ul>' +
-      '<button class="link t-label nw__more" data-act="nw-more">Find out more</button>' +
+  // Extras packages (No Worries, 100% Money refund): one card each, title + Find out more on top, a toggle with the price below
+  function pkg(id, title, sub, price, on, act, more) {
+    return '<section class="xpk' + (on ? ' is-on' : '') + '" aria-labelledby="' + id + '-title">' +
+      '<div class="xpk__head">' +
+        '<div class="xpk__text"><h2 id="' + id + '-title" class="t-h3">' + title + '</h2><p class="t-body-sm c-secondary">' + sub + '</p></div>' +
+        '<button class="link t-label xpk__more" data-act="' + more + '">Find out more</button>' +
+      '</div>' +
+      '<button class="xpk__row" role="switch" aria-checked="' + on + '" data-act="' + act + '" aria-label="' + esc(title) + ', ' + price + '">' +
+        '<span class="t-label xpk__label">' + (on ? 'Added' : 'Add to booking') + '</span>' +
+        '<span class="t-label-lg nowrap">+' + price + '</span>' +
+        '<span class="toggle" aria-hidden="true"><span class="toggle__knob"></span></span>' +
+      '</button>' +
     '</section>';
+  }
+  function noWorries(s, e) {
+    return pkg('nw', 'Absolutely No Worries', 'If you miss your ride or your plane, we sort it out.', money2(api.NO_WORRIES * (s.adults + s.children)), !!e.nw, 'nw', 'nw-more');
+  }
+  // priced on every ride in the booking (departure and return), so it lives here and not on the offers
+  function refundPrice(L) { return Math.round(L.reduce((a, l) => a + l.o.total, 0) * 15) / 100; }
+  function moneyRefund(L) {
+    return pkg('rf', '100% Money refund', 'Cancel up to 48h before the transfer and get all your money back' + (L.length > 1 ? ' for both rides.' : '.'), money2(refundPrice(L)), !!GO.store.get().refund, 'refund', 'refund-more');
   }
 
   // Promo code inside the total block, between Total and Continue (20.10.2026): a grey field "Enter promo code",
@@ -4000,7 +4022,7 @@ GO.router = (function () {
           '<div class="trips">' + L.map(l => tripHeader(s, l, round)).join('') + '</div>' +
           // order as in 2490:32202: flight, No Worries, luggage, child seat; the promo code sits in the total
           flightBlock(e, L) +
-          noWorries(s, e) +
+          '<div class="xpk-list">' + noWorries(s, e) + moneyRefund(L) + '</div>' +
           luggage(e, L) +
           childSeats(s, e) +
           totalBlock(T, promo(e, voucherErr, voucherBusy, v ? voucherText(e.voucher).replace('transfers', round ? 'your transfers' : 'your transfer') : ''), invoiceRow(e)) +
@@ -4051,6 +4073,8 @@ GO.router = (function () {
       seats: () => GO.router.go('/extras/seats'),
       nw() { setEx({ nw: !ex().nw }); refreshKeep('[data-act=nw]'); },
       'nw-more': () => GO.router.go('/extras/no-worries'),
+      refund() { GO.store.set({ refund: !GO.store.get().refund }); refreshKeep('[data-act=refund]'); },
+      'refund-more': () => GO.router.go('/extras/refund'),
       flight(el) { GO.store.set({ flightLeg: el.dataset.leg }); GO.router.go('/extras/flight'); },
       // "consider changing it" / "Change date": back to the offers of that leg with its date and time sheet open,
       // since a new time needs a new offer; closing the sheet lands on those offers
@@ -4409,6 +4433,36 @@ GO.router = (function () {
     actions: {
       close: () => GO.router.back(),
       'nw-sheet'() { if (!ex().nw) setEx({ nw: true }); GO.router.back(); },
+      'nw-terms': () => u.toast('Terms and conditions come in a later build'),
+    },
+  };
+
+  // ---------- sheet: 100% Money refund, find out more (same layout as No Worries) ----------
+  const RF_COVER = [
+    ['Can I cancel for any reason?', 'Yes. Cancel up to 48 hours before your transfer, no questions asked.'],
+    ['What do I get back?', 'The full price of every ride in this booking, departure and return.'],
+    ['How do I cancel?', 'Use the link in your confirmation email or call us. We return the money to the card you paid with.'],
+  ];
+  GO.screens['extras-refund'] = {
+    overlay: true, base: 'extras', sheetClass: 'sheet--bottom',
+    render(s) {
+      const L = legs(s).filter(l => l.o);
+      const on = !!s.refund;
+      const price = money2(refundPrice(L));
+      return '<div class="sheet-handle" aria-hidden="true"></div>' +
+        '<header class="sheet-header"><div class="sheet-header__titles"><h2 id="sheet-title" class="t-h1">100% Money refund</h2></div>' +
+        '<button class="icon-btn" data-act="close" aria-label="Close">' + ic('close', 24) + '</button></header>' +
+        '<div class="sheet__body sheet__body--gap16">' +
+          '<h3 class="t-h3">What does it cover?</h3>' +
+          '<ul class="nw-cover">' + RF_COVER.map(([q, a]) => '<li class="nw-cover__item">' + ic('check-circle', 20, 'icon--success') +
+            '<span class="nw-cover__text"><span class="t-body-sm c-secondary">' + q + '</span><span class="t-label">' + a + '</span></span></li>').join('') + '</ul>' +
+          '<button class="link t-label nw-terms" data-act="nw-terms">Terms and conditions of service</button>' +
+        '</div>' +
+        '<div class="cta-bar"><button class="btn ' + (on ? 'btn--secondary' : 'btn--primary') + '" data-act="rf-sheet">' + (on ? 'Got it' : 'Add for ' + price) + '</button></div>';
+    },
+    actions: {
+      close: () => GO.router.back(),
+      'rf-sheet'() { if (!GO.store.get().refund) GO.store.set({ refund: true }); GO.router.back(); },
       'nw-terms': () => u.toast('Terms and conditions come in a later build'),
     },
   };
