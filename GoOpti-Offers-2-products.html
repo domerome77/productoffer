@@ -804,13 +804,15 @@ img, svg { display: block; }
 .offer__route .offer__stops { justify-content: space-between; }
 .offer__select { margin-top: var(--space-8); min-height: 32px; min-width: 84px; justify-content: center; box-sizing: border-box; padding: 0 var(--space-16); display: inline-flex; align-items: center; border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-bg-page); }
 @media (hover: hover) { .offer:hover .offer__select { background: var(--color-bg-subtle); } }
+.offer__select--quiet { opacity: .55; border-color: var(--color-border-input); color: var(--color-text-secondary); background: transparent; }
+@media (hover: hover) { .offer:hover .offer__select--quiet { opacity: 1; } }
 .shv { position: relative; z-index: 1; pointer-events: auto; display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-4); }
 .shv__head { display: flex; justify-content: space-between; gap: var(--space-8); }
-.shv__opts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; padding: 2px; border-radius: var(--radius-md); background: var(--color-bg-muted); }
-.shv__opt { min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: calc(var(--radius-md) - 2px); color: var(--color-text-primary); cursor: pointer; }
+.shv__opts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; border: 1px solid var(--color-border-input); border-radius: var(--radius-md); background: var(--color-bg-page); overflow: hidden; }
+.shv__opt + .shv__opt { border-left: 1px solid var(--color-border-input); }
+.shv__opt { min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 0; background: var(--color-bg-page); color: var(--color-text-primary); cursor: pointer; }
 .shv__opt .t-caption { color: var(--color-text-secondary); }
-@media (hover: hover) { .shv__opt:not([aria-checked="true"]):not([disabled]):hover { background: var(--color-bg-page); } }
-.shv__opt[aria-checked="true"] { background: var(--color-bg-page); box-shadow: var(--shadow-raised); }
+@media (hover: hover) { .shv__opt:not([disabled]):hover { background: var(--color-bg-subtle); } }
 .offer.is-selected .shv__opt[aria-checked="true"] { background: var(--color-action-success); color: var(--color-text-inverse); }
 .offer.is-selected .shv__opt[aria-checked="true"] .t-caption { color: var(--color-text-inverse); }
 .shv__opt[disabled] { cursor: default; color: var(--color-text-disabled); }
@@ -848,6 +850,12 @@ img, svg { display: block; }
   padding: var(--layout-card-padding);
   background: var(--color-bg-subtle); border-radius: var(--radius-lg);
 }
+
+/* Shared/general promises: no box, small, set apart from the Private group above */
+.trust-card--plain { background: none; padding: 0; margin-top: var(--space-16); gap: var(--space-8); }
+.trust-card__kicker { text-transform: uppercase; letter-spacing: .06em; font-weight: var(--font-weight-bold); }
+.trust-card--plain .check-item .icon { width: 16px; height: 16px; }
+.trust-card--plain .check-item .t-body-sm { font-size: var(--font-size-caption); line-height: var(--line-height-caption); color: var(--color-text-secondary); }
 
 /* Add your house number (2320:29071): street with a live chip, small number field, map placeholder */
 .house-row { display: flex; align-items: flex-start; gap: var(--space-12); }
@@ -3153,7 +3161,7 @@ GO.router = (function () {
       // content (gap 8): body, then footer with captions (body-sm, one style) and (i) on the first line
       '<div class="offer__content">' +
         // selected: no type line, the (i) sits under the price so the card keeps its height
-        '<div class="offer__body">' + stops(c.q, o) + (isSel ? price(o).replace(/<\/div>$/, infoBtn(o) + '</div>') : price(o)) + '</div>' +
+        '<div class="offer__body">' + stops(c.q, o) + (isSel || o.soldOut ? price(o) : price(o).replace(/<\/div>$/, '<span class="offer__select offer__select--quiet t-label" aria-hidden="true">Select</span></div>')) + '</div>' +
         (o.soldOut ? '<div class="offer__type t-body-sm c-secondary"><span>No seats left for this window.</span></div>' : '') +
         (extra || '') +
         (isSel && !o.soldOut ? refundIn(c, o) : '') +
@@ -3233,9 +3241,9 @@ GO.router = (function () {
         checkItem('store', 'One short stop on the way is included') +
       '</ul></section>';
     }
-    return '<section class="trust-card" aria-label="Every GoOpti ride" style="padding-block: var(--space-16)"><ul class="check-list">' +
-      checkItem('check-circle', 'Free cancellation within 24h of booking') +
+    return '<section class="trust-card trust-card--plain" aria-labelledby="trust-title"><h2 id="trust-title" class="t-caption c-tertiary trust-card__kicker">Every GoOpti ride</h2><ul class="check-list check-list--tight">' +
       checkItem('check-circle', 'Exact pick-up time by SMS &amp; mail the day before transfer') +
+      checkItem('check-circle', 'Free cancellation within 24h of booking') +
     '</ul></section>';
   }
 
