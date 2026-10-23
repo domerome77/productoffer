@@ -1758,8 +1758,10 @@ GO.api = (function () {
     const latest = dropBy ? t - b.dur : t;
     const h = hash((from.twin || from.id) + (to.twin || to.id) + s.date); // twin: the same spot under another id (a street without a number)
     const scenario = s.offersScenario || (h % 13 === 0 ? 'empty' : h % 4 === 0 ? 'soldout' : 'normal');
-    const mk = (id, o) => Object.assign({ id, pax, dur: b.dur, soldOut: false, badge: null }, o, {
-      arrival: o.pickTo + b.dur,
+    // private goes direct: 15 min shorter than shared (Ljubljana > Venice: 2h 30m, 05:30 > 08:00)
+    const PRIV_DUR = b.dur - 15;
+    const mk = (id, o) => Object.assign({ id, pax, dur: o.kind === 'private' ? PRIV_DUR : b.dur, soldOut: false, badge: null }, o, {
+      arrival: o.pickTo + (o.kind === 'private' ? PRIV_DUR : b.dur),
       total: o.kind === 'private' ? o.unit : o.unit * pax,
     });
 
@@ -1774,7 +1776,9 @@ GO.api = (function () {
         if (id === 'flex1') {
           const wins = real ? [[60, 35], [120, 27], [180, 23]] : [[60, 35 / 27], [120, 1], [180, 23 / 27]].map(([m, r]) => [m, Math.round(b.shared.flex1 * r)]);
           const ww = wins.some(x => x[0] === s.flexWin) ? s.flexWin : 120;
-          const o = mk(id, { kind: 'flex', window: ww, pickFrom: latest - w, pickTo: latest - w + ww, unit: wins.find(x => x[0] === ww)[1] });
+          // windows share one end (the latest pick-up): 1h 04:15–05:15, 2h 03:15–05:15, 3h 02:15–05:15
+          const o = mk(id, { kind: 'flex', window: ww, pickFrom: latest - ww, pickTo: latest, unit: wins.find(x => x[0] === ww)[1] });
+          o.winEnd = latest;
           o.wins = wins.map(([m, u]) => ({ w: m, unit: u }));
           o.arrival = latest + b.dur; shared.push(o); return;
         }
@@ -1794,7 +1798,8 @@ GO.api = (function () {
     }
     if (!dropBy || latest >= EARLIEST_PICKUP) {
       const van = pax > 3 ? 1.35 : 1; // bigger vehicle for 4+
-      priv.push(mk('private', { kind: 'private', pickFrom: latestPrivate, pickTo: latestPrivate, unit: Math.round(b.priv * van) }));
+      const pp = dropBy ? latestPrivate + b.dur - PRIV_DUR : latestPrivate; // same drop-off as shared, later pick-up
+      priv.push(mk('private', { kind: 'private', pickFrom: pp, pickTo: pp, unit: Math.round(b.priv * van) }));
     }
 
     if (scenario === 'soldout' && shared.length > 1) {
@@ -3043,7 +3048,7 @@ GO.router = (function () {
     if (!c.data || c.sel.key === c.data.key) return;
     const fo = c.data.shared.find(o => o.wins);
     const w2 = fo && fo.wins.find(v => v.w === 120);
-    if (w2) { fo.window = 120; fo.pickTo = fo.pickFrom + 120; fo.unit = w2.unit; fo.total = w2.unit * fo.pax; GO.store.set({ flexWin: 120, sharedVar: fo.id }); }
+    if (w2) { fo.window = 120; if (fo.winEnd != null) { fo.pickFrom = fo.winEnd - 120; fo.pickTo = fo.winEnd; } else fo.pickTo = fo.pickFrom + 120; fo.unit = w2.unit; fo.total = w2.unit * fo.pax; GO.store.set({ flexWin: 120, sharedVar: fo.id }); }
     setSel(c.leg, { key: c.data.key, id: defaultOffer(c.data), filter: 'all' });
     Object.assign(c, ctx(c.leg));
   }
@@ -3117,7 +3122,7 @@ GO.router = (function () {
   function winSelect(o) {
     // closed: only the window; the prices show in the open list (the select is an invisible layer over the label)
     return '<span class="offer__win"><span class="offer__win-label t-label-lg" aria-hidden="true">' + fromMin(o.pickFrom) + '–' + fromMin(o.pickTo) + '</span><select class="t-label-lg" data-win data-id="' + o.id + '" aria-label="Pick-up window">' +
-      o.wins.map(x => '<option value="' + x.w + '"' + (x.w === o.window ? ' selected' : '') + '>' + fromMin(o.pickFrom) + '–' + fromMin(o.pickFrom + x.w) + ' · ' + money(x.unit) + '</option>').join('') +
+      o.wins.map(x => '<option value="' + x.w + '"' + (x.w === o.window ? ' selected' : '') + '>' + (o.winEnd != null ? fromMin(o.winEnd - x.w) + '–' + fromMin(o.winEnd) : fromMin(o.pickFrom) + '–' + fromMin(o.pickFrom + x.w)) + ' · ' + money(x.unit) + '</option>').join('') +
     '</select>' + ic('chevron-down', 16) + '</span>';
   }
 
@@ -3340,7 +3345,7 @@ GO.router = (function () {
             const o = c.data && allOffers(c.data).find(x => x.id === t.dataset.id);
             if (!o || !o.wins) return;
             const x = o.wins.find(v => v.w === w);
-            o.window = w; o.pickTo = o.pickFrom + w; o.unit = x.unit; o.total = x.unit * o.pax;
+            o.window = w; if (o.winEnd != null) { o.pickFrom = o.winEnd - w; o.pickTo = o.winEnd; } else o.pickTo = o.pickFrom + w; o.unit = x.unit; o.total = x.unit * o.pax;
             // "Cheapest" follows the new price
             const ok = c.data.shared.filter(v => !v.soldOut && v.id !== 'earlier' && v.id !== 'later');
             ok.forEach(v => { v.cheapest = false; });
@@ -3415,7 +3420,7 @@ GO.router = (function () {
           if (!o || o.soldOut) return;
           if (o.wins && w) {
             const x = o.wins.find(v => v.w === w);
-            o.window = w; o.pickTo = o.pickFrom + w; o.unit = x.unit; o.total = x.unit * o.pax;
+            o.window = w; if (o.winEnd != null) { o.pickFrom = o.winEnd - w; o.pickTo = o.winEnd; } else o.pickTo = o.pickFrom + w; o.unit = x.unit; o.total = x.unit * o.pax;
             GO.store.set({ flexWin: w });
           }
           GO.store.set({ sharedVar: id });
