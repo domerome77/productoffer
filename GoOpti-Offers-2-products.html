@@ -3104,6 +3104,7 @@ GO.router = (function () {
       '<div class="rail" aria-hidden="true"><span class="rail__dot"></span><span class="rail__line"></span><span class="rail__dot"></span></div>' +
       '<div class="offer__stops">' +
         '<div class="offer__stop">' + '<span class="t-label-lg nowrap">' + pickLabel(o) + '</span>' + '<span class="t-body">' + esc(placeLabel(q.from)) + '</span></div>' +
+        '<div class="offer__dur t-caption c-tertiary">' + fmtDur(rideDur(o)) + '</div>' +
         '<div class="offer__stop"><span class="t-label-lg nowrap">' + fromMin(o.arrival) + '</span><span class="t-body">' + esc(placeLabel(q.to)) + '</span></div>' +
       '</div>' +
     '</div>';
@@ -3207,7 +3208,7 @@ GO.router = (function () {
     const shared = kind === 'shared';
     return '<section class="offer-group" aria-labelledby="g-' + kind + '">' +
       '<div class="offer-group__head">' +
-        '<h2 id="g-' + kind + '" class="offer-group__title t-h3">' + (shared ? ic('shuttle', 24) : ic('car', 22.8).replace('<svg', '<svg style="position: relative; top: -1px"')) + (shared ? 'Shared transfer' + groupFrom(list) : 'Private transfer') + '</h2>' +
+        '<h2 id="g-' + kind + '" class="offer-group__title t-h3">' + (shared ? ic('shuttle', 24) : ic('car', 22.8).replace('<svg', '<svg style="position: relative; top: -1px"')) + (shared ? 'Shared transfer' : 'Private transfer') + '</h2>' +
         '<button class="link t-label" style="color: var(--color-text-tertiary); font-weight: var(--font-weight-regular)" data-act="about" data-kind="' + kind + '">' + (shared ? 'How it works' : 'What’s included') + '</button>' +
       '</div>' +
       '<div class="offer-group__list" role="radiogroup" aria-labelledby="g-' + kind + '">' + (shared ? sharedCard(c, list, selId) : list.map(o => card(c, o, o.id === selId)).join('')) + '</div>' +
