@@ -5441,9 +5441,28 @@ GO.router = (function () {
 
   if (GO.frame === 'outer') return; // the app runs inside the phone frame
 
-  // every load starts on the search; all products show with prices (no sold-out demo)
-  GO.store.set({ offersScenario: 'normal', flexWin: 120, sharedVar: '', sel: { out: { key: '', id: null, filter: 'all' }, ret: { key: '', id: null, filter: 'all' } } }); // Shared, flexible 2h is picked on every load
-  history.replaceState({ depth: 0 }, '', '#/');
+  // Offers-only export: every load opens the offers of a one-way demo search (Shared and Private, all with prices, Shared flexible 2h picked).
+  // Navigation stays on the offers and their sheets; anything else shows a toast.
+  (function () {
+    GO.store.set({
+      from: GO.api.place('lj-slovenska'), to: GO.api.place('VCE'), date: GO.u.addDays(GO.api.bookingWindow().min, 7), time: '10:15', timeMode: 'dropoff',
+      adults: 1, children: 0, retDate: null, retTime: null,
+      offersScenario: 'normal', flexWin: 120, sharedVar: '', sel: { out: { key: '', id: null, filter: 'all' }, ret: { key: '', id: null, filter: 'all' } },
+    });
+    history.replaceState({ depth: 0 }, '', '#/offers');
+    const ok = p => p.startsWith('/offers') && !p.startsWith('/offers/return');
+    const cur = () => (location.hash.replace(/^#/, '') || '/').split('?')[0];
+    const go = GO.router.go, back = GO.router.back;
+    GO.router.go = function (p, o) {
+      if (!ok(p.split('?')[0])) { if (GO.u.toast) GO.u.toast('This preview shows the offers only'); return; }
+      return go.call(this, p, o);
+    };
+    GO.router.back = function () {
+      if (((history.state && history.state.depth) || 0) > 0) return back.call(this);
+      return go.call(this, '/offers', { replace: true });
+    };
+    window.addEventListener('popstate', () => { if (!ok(cur())) go('/offers', { replace: true }); });
+  })();
 
   GO.router.start();
 
