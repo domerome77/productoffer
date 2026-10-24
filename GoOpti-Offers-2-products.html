@@ -695,6 +695,13 @@ img, svg { display: block; }
 .edit-form { display: flex; flex-direction: column; gap: var(--space-12); }
 .edit-box { position: relative; display: flex; flex-direction: column; border: 1px solid var(--color-border-input); border-radius: var(--radius-md); background: var(--color-bg-page); }
 .edit-dates { flex-direction: row; }
+.ret-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
+.ret-wrap > .booking__cell, .ret-wrap > .edit-cell { flex: 1; padding-right: 48px; }
+.ret-clear { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px; color: var(--color-icon-muted); }
+.ret-clear::before { content: ''; position: absolute; width: 24px; height: 24px; border-radius: 12px; background: var(--color-bg-muted); }
+.ret-clear .icon { position: relative; width: 14px; height: 14px; color: var(--color-text-secondary); }
+@media (hover: hover) { .ret-clear:hover .icon { color: var(--color-text-primary); } }
+.ret-clear:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: -2px; }
 .edit-cell { flex: 1; min-width: 0; height: 64px; display: flex; align-items: center; gap: var(--space-8); padding: var(--space-12) var(--space-16); text-align: left; border-radius: var(--radius-md); }
 @media (hover: hover) { .edit-cell:hover { background: var(--color-bg-subtle); } }
 .edit-cell--from { padding-right: 64px; }
@@ -719,6 +726,7 @@ img, svg { display: block; }
 /* ---------- Offers ---------- */
 .offers-top { position: sticky; top: 0; z-index: 10; padding-top: var(--safe-top); background: var(--color-bg-page); }
 .offers-header { display: flex; align-items: center; padding-left: var(--space-4); background: var(--color-bg-subtle); }
+.offers-header--noback { padding-left: var(--layout-page-margin); min-height: 64px; }
 /* Navigation/Tabs style=underline: Departure / Return */
 .leg-tabs { display: flex; padding-top: var(--space-4); background: var(--color-bg-page); }
 .leg-tab {
@@ -805,6 +813,8 @@ img, svg { display: block; }
 .offer__dur.t-caption { font-size: 11px; }
 .offer .offer__stop > .t-label-lg { font-size: calc(var(--font-size-label-lg) * 1.1); } /* same size selected or not */ /* grows without moving the labels */
 .offer .offer__stop > .t-body { font-size: calc(var(--font-size-body) * 1.1); }
+.offer.is-selected .offer__stop > .t-body { font-weight: 500; }
+.offer:not(.is-selected) .offer__stop > .t-label-lg { font-size: calc(var(--font-size-body) * 1.1); line-height: var(--line-height-body); font-weight: var(--font-weight-regular); color: inherit; } /* unselected: times read like the labels */
 .offer__price { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
 .offer__amount { display: flex; align-items: baseline; white-space: nowrap; }
 .offer__cur { font-size: var(--font-size-label-lg); line-height: var(--line-height-label-lg); font-weight: 600; color: var(--color-text-secondary); }
@@ -821,16 +831,21 @@ img, svg { display: block; }
 @media (hover: hover) { .offer:hover .offer__select--quiet { opacity: 1; } }
 .shv { position: relative; z-index: 1; pointer-events: auto; display: flex; flex-direction: column; gap: var(--space-4); margin-top: calc(-1 * var(--space-4)); margin-bottom: var(--space-8); }
 .shv__head { display: flex; justify-content: space-between; gap: var(--space-8); }
-.shv__opts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; border: 1px solid var(--color-border-input); border-radius: var(--radius-md); background: var(--color-bg-page); overflow: hidden; }
-.shv__opt + .shv__opt { border-left: 1px solid var(--color-border-input); }
-.shv__opt { min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 0; background: var(--color-bg-page); color: var(--color-text-primary); cursor: pointer; }
+.offer:not(.is-selected) .shv__head .t-label-lg { color: var(--color-text-tertiary); }
+.offer:not(.is-selected) .shv__opt .t-label, .offer:not(.is-selected) .shv__opt .t-caption { color: var(--color-text-tertiary); } /* grey like the rest while Shared isn't picked */
+.shv__opts { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; }
+.shv__opt:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.shv__opt:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+.shv__opt + .shv__opt { margin-left: -1px; }
+.shv__opt { position: relative; border: 1px solid var(--color-border-input); min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 0; background: var(--color-bg-page); color: var(--color-text-primary); cursor: pointer; }
 .shv__opt .t-caption { color: var(--color-text-secondary); }
 @media (hover: hover) { .shv__opt:not([disabled]):hover { background: var(--color-bg-subtle); } }
-.offer.is-selected .shv__opt[aria-checked="true"] { background: var(--color-action-success); color: var(--color-text-inverse); }
+.offer.is-selected .shv__opt[aria-checked="true"] { position: relative; z-index: 1; background: var(--color-action-success); color: var(--color-text-inverse); border-color: var(--color-action-success); } /* the cell's own border turns green: no grey frame, no overshoot */
 .offer:not(.is-selected) .shv__opt[aria-checked="true"] { background: var(--color-bg-muted); } /* Shared not picked: the last chosen step stays faintly marked */
 .offer.is-selected .shv__opt[aria-checked="true"] .t-caption { color: var(--color-text-inverse); }
 .shv__opt[disabled] { cursor: default; color: var(--color-text-disabled); }
 .shv__opt:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 1px; }
+.offer.is-selected .shv__opt[aria-checked="true"]:focus-visible { outline: none; } /* picked step: solid green, no ring after the re-render keeps focus */
 .offer__refund { position: relative; z-index: 1; pointer-events: auto; margin-top: var(--space-4); padding-top: var(--space-8); border-top: 1px solid var(--color-border-success); }
 .offer__refund .refund-row { min-height: 44px; padding: 0; border: 0; background: transparent; }
 .offer__price .offer__info { width: 56px; height: 56px; border-radius: 28px; margin: -4px -16px -18px 0; }
@@ -957,7 +972,7 @@ img, svg { display: block; }
   background: var(--color-bg-page); border-bottom: 1px solid var(--color-border-subtle);
 }
 .extras { display: flex; flex-direction: column; gap: var(--space-16); padding-bottom: var(--safe-bottom); }
-.extras > :not(.trips):not(.ex-total) { margin: 0 var(--layout-page-margin); }
+.extras > :not(.trips):not(.ex-total):not(.trip-sum) { margin: 0 var(--layout-page-margin); }
 
 /* trip header (one per leg) */
 /* on a grey plate across the full width, as the trip summary in the client prototype (#co-trip); no line under it (user, 20.10.2026) */
@@ -966,6 +981,18 @@ img, svg { display: block; }
   background: var(--color-bg-subtle);
 }
 .trips .badge--neutral { background: var(--color-bg-page); }
+.trip-sum { background: var(--color-bg-subtle); } /* full-width grey plate, like the old trip block */
+.trip-sum__head { list-style: none; display: flex; align-items: center; gap: var(--space-12); height: 72px; box-sizing: border-box; padding: var(--space-16) var(--layout-page-margin); cursor: pointer; }
+.trip-sum__head::-webkit-details-marker { display: none; }
+.trip-sum__lines { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-8); }
+.trip-sum__line { display: flex; flex-direction: column; min-width: 0; }
+.trip-sum__line > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trip-sum__toggle { flex-shrink: 0; display: flex; align-items: center; gap: 2px; color: var(--color-text-secondary); }
+.trip-sum__toggle .icon { transition: transform .15s; }
+.trip-sum[open] .trip-sum__toggle .icon { transform: rotate(180deg); }
+.trip-sum__head:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: -2px; }
+.trip-sum .trip-sum__body { background: none; padding-top: 0; }
+.trip-sum + * { margin-top: var(--space-8) !important; }
 .trip { display: flex; flex-direction: column; gap: var(--space-8); }
 .trip__top { display: flex; align-items: center; gap: var(--space-8); }
 .trip__leg { color: var(--color-text-brand); }
@@ -1043,15 +1070,20 @@ img, svg { display: block; }
 .nw-cover__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); }
 .nw-terms { align-self: flex-start; }
 .xpk-list { display: flex; flex-direction: column; gap: var(--space-12); }
-.xpk { display: flex; flex-direction: column; gap: var(--space-12); padding: var(--space-16); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); background: var(--color-bg-page); }
+.xpk { display: flex; align-items: flex-start; gap: var(--space-12); padding: var(--space-12) var(--space-16); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); background: var(--color-bg-page); }
+.payment.payment--inline { padding: var(--space-8) 0 0; margin-top: var(--space-8); } /* the details page already has the page margin */
+.account--compact { gap: var(--space-8); padding: var(--space-12); }
+.account--compact .account__row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-8); }
+.account--compact .btn--social { min-height: 44px; height: 44px; padding: 0 var(--space-8); gap: var(--space-4); font-size: var(--font-size-label); }
+.account--compact .btn--social svg { width: 18px; height: 18px; flex-shrink: 0; }
+.xpk { cursor: pointer; }
+@media (hover: hover) { .xpk:not(.is-on):hover { border-color: var(--color-border-strong); } }
+.page-header h1 { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .xpk.is-on { border-color: var(--color-border-success); background: var(--color-bg-success-subtle); }
-.xpk__head { display: flex; align-items: flex-start; gap: var(--space-12); }
-.xpk__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); }
-.xpk__more { flex-shrink: 0; color: var(--color-text-tertiary); font-weight: var(--font-weight-regular); white-space: nowrap; }
-.xpk__row { display: flex; align-items: center; gap: var(--space-12); width: 100%; min-height: 48px; padding-top: var(--space-12); border-top: 1px solid var(--color-border-subtle); text-align: left; cursor: pointer; }
-.xpk.is-on .xpk__row { border-top-color: var(--color-border-success); }
-.xpk__label { flex: 1; min-width: 0; color: var(--color-text-secondary); }
-.xpk.is-on .xpk__label { color: var(--color-text-success); }
+.xpk__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.xpk__more { color: var(--color-text-secondary); font-weight: var(--font-weight-regular); white-space: nowrap; }
+.xpk__side { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.xpk__row { flex-shrink: 0; display: flex; align-items: center; gap: var(--space-8); min-height: 44px; cursor: pointer; }
 .xpk__row[aria-checked="true"] .toggle { background: var(--color-action-success); }
 .xpk__row[aria-checked="true"] .toggle__knob { transform: translateX(16px); }
 .xpk__row:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
@@ -2264,8 +2296,8 @@ GO.router = (function () {
               '<button class="booking__cell booking__cell--date" data-act="pick-when"><span class="booking__text"><span class="booking__label">Date</span>' +
                 '<span class="booking__value ellipsis">' + esc(fmtDay(s.date) + ', ' + s.time) + '</span></span></button>' +
               (s.retDate && s.retTime
-                ? '<button class="booking__cell" data-act="return"><span class="booking__text"><span class="booking__label">Return</span>' +
-                    '<span class="booking__value ellipsis">' + esc(fmtDay(s.retDate) + ', ' + s.retTime) + '</span></span></button>'
+                ? '<div class="ret-wrap"><button class="booking__cell" data-act="return"><span class="booking__text"><span class="booking__label">Return</span>' +
+                    '<span class="booking__value ellipsis">' + esc(fmtDay(s.retDate) + ', ' + s.retTime) + '</span></span></button>' + '<button class="ret-clear" data-act="clear-return" aria-label="Remove return">' + ic('clear', 20) + '</button>' + '</div>'
                 : '<button class="booking__cell" data-act="return"><span class="booking__text"><span class="booking__value is-empty">Return</span></span></button>') +
             '</div>' +
             paxBlock(s) +
@@ -2331,6 +2363,7 @@ GO.router = (function () {
         GO.router.go('/login');
       },
       return: () => GO.router.go('/return'),
+      'clear-return'() { const st = GO.store.get(); GO.store.set({ retDate: null, retTime: null, sel: Object.assign({}, st.sel, { ret: { key: null, id: null, filter: 'all' } }) }); GO.router.refresh(); },
       passengers() {
         GO.store.set({ paxOpen: true });
         GO.router.refresh();
@@ -2953,7 +2986,7 @@ GO.router = (function () {
           '<span class="booking__value ellipsis">' + esc(s.date && s.time ? fmtDay(s.date) + ', ' + s.time : 'Choose a date') + '</span></span></button>' +
         '<span class="edit-divider edit-divider--v" aria-hidden="true"></span>' +
         (ret
-          ? '<button class="edit-cell" data-act="return"><span class="booking__text"><span class="booking__label">Return</span><span class="booking__value ellipsis">' + esc(fmtDay(s.retDate) + ', ' + s.retTime) + '</span></span></button>'
+          ? '<div class="ret-wrap"><button class="edit-cell" data-act="return"><span class="booking__text"><span class="booking__label">Return</span><span class="booking__value ellipsis">' + esc(fmtDay(s.retDate) + ', ' + s.retTime) + '</span></span></button>' + '<button class="ret-clear" data-act="clear-return" aria-label="Remove return">' + ic('clear', 20) + '</button>' + '</div>'
           : '<button class="edit-cell" data-act="return"><span class="booking__text"><span class="booking__value is-empty">Return</span></span></button>') +
       '</div>' +
       '<div class="edit-box edit-pax">' +
@@ -2983,6 +3016,7 @@ GO.router = (function () {
       'pick-to': () => GO.router.go('/edit/to'),
       'pick-when': () => GO.router.go('/edit/when'),
       return: () => GO.router.go('/edit/return'),
+      'clear-return'() { const st = GO.store.get(); GO.store.set({ retDate: null, retTime: null, sel: Object.assign({}, st.sel, { ret: { key: null, id: null, filter: 'all' } }) }); GO.router.refresh(); },
       swap() {
         const s = GO.store.get();
         GO.store.set({ from: s.to, to: s.from });
@@ -3088,16 +3122,16 @@ GO.router = (function () {
   function allOffers(data) { return data.shared.concat(data.priv, data.empty ? data.empty.alternatives : []); }
   function defaultOffer(data) {
     if (data.empty) return null;
-    const fixed = data.shared.find(o => o.kind === 'fixed' && !o.soldOut); // Shared, Fixed time by default
-    const flex = data.shared.find(o => o.wins && !o.soldOut);
-    return (fixed || flex || data.priv[0] || {}).id || null;
+    const flex = data.shared.find(o => o.wins && !o.soldOut); // Shared, 2h Flexi by default
+    const fixed = data.shared.find(o => o.kind === 'fixed' && !o.soldOut);
+    return (flex || fixed || data.priv[0] || {}).id || null;
   }
   // A new search starts with the cheapest ride picked and the filter on All
   function syncSelection(c) {
     if (!c.data || c.sel.key === c.data.key) return;
     const fo = c.data.shared.find(o => o.wins);
     const w2 = fo && fo.wins.find(v => v.w === 120);
-    if (w2) { fo.window = 120; if (fo.winEnd != null) { fo.pickFrom = fo.winEnd - 120; fo.pickTo = fo.winEnd; } else fo.pickTo = fo.pickFrom + 120; fo.unit = w2.unit; fo.total = w2.unit * fo.pax; GO.store.set({ flexWin: 120, sharedVar: 'fixed' }); }
+    if (w2) { fo.window = 120; if (fo.winEnd != null) { fo.pickFrom = fo.winEnd - 120; fo.pickTo = fo.winEnd; } else fo.pickTo = fo.pickFrom + 120; fo.unit = w2.unit; fo.total = w2.unit * fo.pax; GO.store.set({ flexWin: 120, sharedVar: fo.id }); }
     setSel(c.leg, { key: c.data.key, id: defaultOffer(c.data), filter: 'all' });
     Object.assign(c, ctx(c.leg));
   }
@@ -3122,7 +3156,7 @@ GO.router = (function () {
 
   function header(c) {
     return '<div class="offers-top">' +
-      (c.round ? legTabs(c) : '') +
+      // no Departure / Return tabs: the card titles say which leg it is
       '<header class="offers-header">' +
         '<button class="icon-btn" data-act="back" aria-label="Back">' + ic('chevron-left', 24) + '</button>' +
         '<div class="search-summary">' +
@@ -3216,8 +3250,8 @@ GO.router = (function () {
   function sharedOpts(list) {
     const opts = [];
     const fx = list.find(o => o.kind === 'fixed');
-    if (fx) opts.push({ id: fx.id, w: 0, label: 'Fix time', unit: fx.unit, soldOut: fx.soldOut });
-    list.filter(o => o.wins).forEach(o => o.wins.forEach(x => opts.push({ id: o.id, w: x.w, label: (x.w / 60) + 'h', unit: x.unit, soldOut: o.soldOut })));
+    if (fx) opts.push({ id: fx.id, w: 0, label: 'Fixed time', unit: fx.unit, soldOut: fx.soldOut });
+    list.filter(o => o.wins).forEach(o => o.wins.forEach(x => opts.push({ id: o.id, w: x.w, label: (x.w / 60) + 'h Flexi', unit: x.unit, soldOut: o.soldOut })));
     return opts;
   }
   function sharedShown(c, list, selId) {
@@ -3229,7 +3263,7 @@ GO.router = (function () {
     const opts = sharedOpts(list).reverse(); // cheapest (3h window) first, Fix time last
     const isOn = x => x.id === o.id && (o.wins ? x.w === o.window : true);
     const seg = opts.length > 1 ? '<div class="shv">' +
-        '<div class="shv__head t-caption c-secondary"><span>be flexible, <strong style="font-weight: var(--font-weight-bold)">discount your price</strong></span></div>' +
+        '<div class="shv__head"><span class="t-label-lg">Be flexible. Pay less.</span></div>' +
         '<div class="shv__opts" role="radiogroup" aria-label="Pick-up time">' + opts.map(x =>
           '<button class="shv__opt" role="radio" aria-checked="' + isOn(x) + '" data-act="shvar" data-id="' + x.id + '" data-w="' + x.w + '"' + (x.soldOut ? ' disabled' : '') +
             ' aria-label="' + (x.w ? 'Pick-up window ' + x.label : 'Fixed pick-up time') + ', ' + (x.soldOut ? 'sold out' : money(x.unit) + ' per person') + '">' +
@@ -3264,7 +3298,7 @@ GO.router = (function () {
     const head = '<div class="offer-group__head offer__head">' +
         '<div class="offer-group__id">' +
           '<span class="offer-group__tile offer-group__tile--' + kind + '" aria-hidden="true">' + ic(shared ? 'shuttle' : 'car', 24) + '</span>' +
-          '<h2 id="g-' + kind + '" class="offer-group__title t-h3">' + (shared ? 'Shared transfer' : 'Private transfer') + '</h2>' +
+          '<h2 id="g-' + kind + '" class="offer-group__title t-h3">' + (shared ? 'Shared' : 'Private') + (c.round ? (c.leg === 'ret' ? ' return' : ' departure') : '') + ' transfer</h2>' +
         '</div>' +
         '<button class="link t-label" style="color: var(--color-text-secondary); font-weight: var(--font-weight-regular)" data-act="about" data-kind="' + kind + '">' + (shared ? 'How it works' : 'What’s included') + '</button>' +
       '</div>';
@@ -3337,7 +3371,7 @@ GO.router = (function () {
       const other = pickedOf(c.leg === 'out' ? 'ret' : 'out');
       if (c.leg === 'out') {
         note = 'Departure, ' + note;
-        label = 'Choose return ride'; act = 'to-return';
+        label = 'Continue to return'; act = 'to-return';
       } else if (other) {
         sum += other.total;
         note = '2 rides, ' + note;
@@ -3744,7 +3778,7 @@ GO.router = (function () {
             '<div class="price-line price-line--total"><dt class="t-label-lg">Total</dt><dd class="t-h3">' + money2(sum) + '</dd></div>' +
           '</dl>' +
           (c.round && lines.length < 2 ? '<p class="t-caption c-tertiary">The ' + (lines[0].l === 'out' ? 'return' : 'departure') + ' ride is added when you choose it.</p>' : '') +
-          '<p class="t-caption c-tertiary">Luggage, child seats and extras come on the next step.</p>' +
+          '<p class="t-caption c-tertiary">Baggage, child seats and extras come on the next step.</p>' +
         '</div>' + sheetFoot('Got it');
     },
     actions: closeAct,
@@ -3839,6 +3873,21 @@ GO.router = (function () {
     '</section>';
   }
 
+  // condensed: one line per ride, the full route opens on tap (native details, stays open across re-renders)
+  function tripSummary(s, L, round) {
+    // closed: one fixed-height row, same for one-way and return
+    const q0 = L[0].q;
+    const sub = esc(placeName(q0.from)) + (round ? ' ⇄ ' : ' → ') + esc(placeName(q0.to)) + ', ' + esc(fmtDay(q0.date)) + (round ? ' – ' + esc(fmtDay(L[1].q.date)) : '');
+    const line = () => '<span class="trip-sum__line"><span class="t-label">Booking details</span><span class="t-body-sm c-secondary">' + sub + '</span></span>';
+    return '<details class="trip-sum"' + (GO.store.get().tripOpen ? ' open' : '') + ' data-trip-sum>' +
+      '<summary class="trip-sum__head">' +
+        '<span class="trip-sum__lines">' + line() + '</span>' +
+        '<span class="trip-sum__toggle" aria-hidden="true">' + ic('chevron-down', 24) + '</span>' +
+      '</summary>' +
+      '<div class="trips trip-sum__body">' + L.map(l => tripHeader(s, l, round)).join('') + '</div>' +
+    '</details>';
+  }
+
   function stepper(id, label, desc, value, icon) {
     return '<div class="lug-row">' + ic(icon, 20) +
       '<div class="lug-row__stepper" role="group" aria-labelledby="lug-' + id + '">' +
@@ -3856,7 +3905,7 @@ GO.router = (function () {
     const free = L.every(l => l.o.kind === 'private');
     const price = item => free ? 'included' : '€' + item.price;
     return '<section class="ex-card lug" aria-labelledby="lug-title">' +
-      '<div class="lug__head"><h2 id="lug-title" class="t-h3">Luggage</h2>' +
+      '<div class="lug__head"><h2 id="lug-title" class="t-h3">Baggage</h2>' +
       '<p class="t-body-sm c-tertiary">' + (free ? 'Your private ride carries your luggage at no extra cost. Add it so the driver knows.' : 'Add luggage now to ensure there is enough space. One 5kg item included for free.') + '</p></div>' +
       '<div class="lug__list">' + api.LUGGAGE.map(item => stepper(item.id, item.label, item.size + ', ' + price(item), e.lug[item.id], item.icon)).join('<hr class="lug__divider">') + '</div>' +
     '</section>';
@@ -3955,16 +4004,18 @@ GO.router = (function () {
 
   // Extras packages (No Worries, 100% Money refund): one card each, title + Find out more on top, a toggle with the price below
   function pkg(id, title, sub, price, on, act, more) {
-    return '<section class="xpk' + (on ? ' is-on' : '') + '" aria-labelledby="' + id + '-title">' +
-      '<div class="xpk__head">' +
-        '<div class="xpk__text"><h2 id="' + id + '-title" class="t-h3">' + title + '</h2><p class="t-body-sm c-secondary">' + sub + '</p></div>' +
-        '<button class="link t-label xpk__more" data-act="' + more + '">Find out more</button>' +
+    // compact: text on the left, price + toggle on the right in the same row
+    // the whole card toggles the package (Find out more keeps its own action)
+    return '<section class="xpk' + (on ? ' is-on' : '') + '" data-act="' + act + '" aria-labelledby="' + id + '-title">' +
+      '<div class="xpk__text">' +
+        '<h2 id="' + id + '-title" class="t-label-lg">' + title + '</h2>' +
+        '<p class="t-body-sm c-secondary">' + sub + '</p>' +
       '</div>' +
+      '<div class="xpk__side"><button class="link t-caption xpk__more" data-act="' + more + '">Find out more</button>' +
       '<button class="xpk__row" role="switch" aria-checked="' + on + '" data-act="' + act + '" aria-label="' + esc(title) + ', ' + price + '">' +
-        '<span class="t-label xpk__label">' + (on ? 'Added' : 'Add to booking') + '</span>' +
-        '<span class="t-label-lg nowrap">+' + price + '</span>' +
+        '<span class="t-label nowrap">+' + price + '</span>' +
         '<span class="toggle" aria-hidden="true"><span class="toggle__knob"></span></span>' +
-      '</button>' +
+      '</button></div>' +
     '</section>';
   }
   function noWorries(s, e) {
@@ -4013,7 +4064,7 @@ GO.router = (function () {
       '<div class="total-row"><div class="total-row__text"><span class="t-label-lg">Total</span><span class="t-caption c-tertiary">incl. transaction fee</span></div>' +
       '<div class="t-h2 nowrap" aria-live="polite">' + money2(T.total) + '</div></div>' +
       promoHtml + invoiceHtml +
-      '<button class="btn btn--primary" data-act="continue">Continue</button>' +
+      '<button class="btn btn--primary" data-act="continue">Continue to Payment</button>' +
     '</section>';
   }
 
@@ -4023,7 +4074,7 @@ GO.router = (function () {
   GO.screens.extras = {
     render(s) {
       const L = legs(s);
-      const head = '<header class="page-header"><button class="icon-btn" data-act="back" aria-label="Back">' + ic('chevron-left', 24) + '</button><h1 class="t-h2">Finish booking</h1></header>';
+      const head = '<header class="page-header"><button class="icon-btn" data-act="back" aria-label="Back">' + ic('chevron-left', 24) + '</button><h1 class="t-h2">Select Extras</h1></header>';
       if (!L.length || L.some(l => !l.o)) {
         return head + GO.noRide(s);
       }
@@ -4033,7 +4084,7 @@ GO.router = (function () {
       const v = T.lines.find(l => l.voucher);
       return head +
         '<main class="extras">' +
-          '<div class="trips">' + L.map(l => tripHeader(s, l, round)).join('') + '</div>' +
+          tripSummary(s, L, round) +
           // order as in 2490:32202: flight, No Worries, luggage, child seat; the promo code sits in the total
           flightBlock(e, L) +
           '<div class="xpk-list">' + noWorries(s, e) + moneyRefund(L) + '</div>' +
@@ -4180,6 +4231,8 @@ GO.router = (function () {
         '</div>';
     },
     mount(root) {
+      const ts = root.querySelector('[data-trip-sum]');
+      if (ts) ts.addEventListener('toggle', () => GO.store.set({ tripOpen: ts.open }));
       const input = root.querySelector('#flight-q');
       if (!input) return;
       input.focus();
@@ -4581,16 +4634,16 @@ GO.router = (function () {
   }
 
   function account() {
+    // compact: one card, title + one row of three buttons (Google, Facebook, email)
     return '<section class="account" aria-labelledby="acc-title">' +
-      '<div class="ex-card account__social">' +
-        '<h2 id="acc-title" class="t-label-lg">Or continue with</h2>' +
+      '<div class="ex-card account__social account--compact">' +
+        '<h2 id="acc-title" class="t-label">Log in or create an account</h2>' +
         '<div class="account__row">' +
           '<button class="btn btn--secondary btn--social" data-act="social" data-p="Google">' + GO.LOGO_GOOGLE + 'Google</button>' +
           '<button class="btn btn--secondary btn--social" data-act="social" data-p="Facebook">' + GO.LOGO_FACEBOOK + 'Facebook</button>' +
+          '<button class="btn btn--secondary btn--social" data-act="login">' + ic('mail', 20) + 'Email</button>' +
         '</div>' +
-        '<p class="t-body-sm c-secondary">Log in or create an account.</p>' +
       '</div>' +
-      '<button class="account__email" data-act="login">' + ic('mail', 20) + '<span class="t-label-lg">Continue with email</span></button>' +
     '</section>';
   }
 
@@ -4623,14 +4676,14 @@ GO.router = (function () {
         '</div>' +
         '<div class="t-h2 nowrap">' + B.money2(T.total) + '</div>' +
       '</div>' +
-      '<button class="btn btn--primary" data-act="pay">Continue to payment</button>' +
+      '<button class="btn btn--primary" data-act="pay"' + (GO.payInline.busy() ? ' aria-busy="true" disabled' : '') + '><span class="btn__label">' + (GO.payInline.busy() ? 'Paying…' : 'Pay ' + B.money2(T.total)) + '</span></button>' +
     '</div>';
   }
 
   // ---------- screen ----------
   GO.screens.details = {
     render(s) {
-      const head = '<header class="page-header"><button class="icon-btn" data-act="back" aria-label="Back">' + ic('chevron-left', 24) + '</button><h1 class="t-h2">Enter passenger info</h1></header>';
+      const head = '<header class="page-header"><button class="icon-btn" data-act="back" aria-label="Back">' + ic('chevron-left', 24) + '</button><h1 class="t-h2">Enter passenger &amp; pay</h1></header>';
       const L = B.legs(s);
       if (!L.length || L.some(l => !l.o)) {
         return head + GO.noRide(s);
@@ -4652,10 +4705,12 @@ GO.router = (function () {
             otherLink(s) +
           '</form>' +
           (c.account ? '' : account()) +
+          GO.payInline.html() +
         '</main>' +
         bar(s, T, L);
     },
     mount(root) {
+      GO.payInline.mount(root);
       const form = root.querySelector('[data-details-form]');
       if (!form) return;
       // Values go to the store as they are typed; an error disappears as soon as the value is fine
@@ -4714,8 +4769,9 @@ GO.router = (function () {
           el.closest('.form-field').scrollIntoView({ block: 'center', behavior: 'smooth' });
           return;
         }
-        GO.router.go('/payment');
+        GO.payInline.pay();
       },
+      terms: () => u.toast('Terms open in a new tab on the real site'),
     },
   };
 
@@ -5094,7 +5150,7 @@ GO.router = (function () {
   ];
   const DECLINED = '4000000000000002'; // test card that the fake bank turns down
 
-  let pay = { method: 'card', number: '', exp: '', cvc: '' };
+  let pay = { method: WALLET.id, number: '', exp: '', cvc: '' }; // Apple Pay (Google Pay on Android) by default
   let errors = {};
   let failed = false, busy = false;
 
@@ -5284,6 +5340,21 @@ GO.router = (function () {
     },
   };
 
+  // inline on "Enter passenger & pay": same tiles, fields and checks, below the passenger details
+  GO.payInline = {
+    html() {
+      return '<section class="payment payment--inline" aria-label="Payment">' +
+        failAlert() +
+        '<div class="payment__form" data-pay-form>' + tiles() + methodBody() + '</div>' +
+        '<p class="pay-note t-body-sm c-secondary">' + ic('lock', 18) + '<span>Payment is processed by Revolut.<br>We don’t see or store your card details.</span></p>' +
+        '<p class="pay-note t-body-sm c-secondary">' + ic('shield-lock', 18) + '<span>By paying, you accept the GoOpti <button class="link link--inline" data-act="terms">Terms and Conditions</button> and <button class="link link--inline" data-act="terms">Privacy Policy</button>.</span></p>' +
+      '</section>';
+    },
+    mount(root) { GO.screens.payment.mount(root); },
+    pay() { return GO.screens.payment.actions.pay(); },
+    busy() { return busy; },
+  };
+
   function showError(key, msg) {
     if (msg) errors[key] = msg; else delete errors[key];
     const t = document.getElementById('p-' + key);
@@ -5332,7 +5403,7 @@ GO.router = (function () {
         kind: l.o.kind, window: l.o.window || 0, pickFrom: l.o.pickFrom, pickTo: l.o.pickTo, arrival: l.o.arrival, dur: l.o.dur, total: l.o.total,
       })),
     };
-    pay = { method: 'card', number: '', exp: '', cvc: '' }; errors = {};
+    pay = { method: WALLET.id, number: '', exp: '', cvc: '' }; errors = {};
     // the trip is done: the next search starts clean, contact details stay for the next booking
     const contact = s.contact;
     GO.store.reset();
