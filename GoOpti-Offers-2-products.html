@@ -1373,6 +1373,22 @@ ul.place-list { list-style: none; }
 /* window steps: prices a little darker */
 .shv__opt .t-caption, .offer:not(.is-selected) .shv__opt .t-caption { color: color-mix(in srgb, var(--color-text-primary) 72%, var(--color-text-secondary)) !important; }
 .offer.is-selected .shv__opt[aria-checked="true"] .t-caption { color: var(--color-text-primary) !important; }
+
+/* compact cards: pick-up and drop-off closer, less height overall */
+.offer__body { min-height: 0 !important; }
+.offer__route .offer__stops { justify-content: flex-start !important; gap: var(--space-12); }
+.offer__content { gap: var(--space-8); }
+.offer { padding-top: var(--space-16); padding-bottom: var(--space-16); }
+.offer.is-selected { padding-top: calc(var(--space-16) - 1px); padding-bottom: calc(var(--space-16) - 1px); }
+.offer .offer__head { margin-top: 0 !important; padding-bottom: var(--space-8); margin-bottom: var(--space-4); }
+.offer__tick { margin-top: var(--space-8) !important; }
+.offers-main { gap: var(--space-20, 20px) !important; }
+.offer-group__list { gap: var(--space-16); }
+.shv { margin-top: var(--space-4) !important; margin-bottom: var(--space-12) !important; gap: var(--space-8) !important; }
+.shv__head, .shv__head > span { height: auto !important; max-height: none !important; white-space: normal; }
+.offer-group__title, .offer__head .link { white-space: nowrap; }
+.offer__head { flex-wrap: nowrap !important; }
+.offer-group__id { min-width: 0; }
 </style>
 
 </head>
@@ -3270,7 +3286,6 @@ GO.router = (function () {
       '<div class="rail" aria-hidden="true"><span class="rail__dot"></span><span class="rail__line"></span><span class="rail__dot"></span></div>' +
       '<div class="offer__stops">' +
         '<div class="offer__stop">' + '<span class="t-label-lg nowrap" style="--tw: ' + pickLabel(o).length + '">' + pickLabel(o) + '</span>' + '<span class="t-body">Pick-up</span></div>' +
-        '<div class="offer__dur t-caption c-tertiary">' + fmtDur(rideDur(o)) + '</div>' +
         '<div class="offer__stop"><span class="t-label-lg nowrap">' + fromMin(o.arrival) + '</span><span class="t-body">Latest drop-off</span></div>' +
       '</div>' +
     '</div>';
@@ -3319,7 +3334,7 @@ GO.router = (function () {
         (head || '') +
         (extra || '') + // Shared: the pick-up time scale sits on top of the card
         // selected: no type line, the (i) sits under the price so the card keeps its height
-        '<div class="offer__body">' + stops(c.q, o) + (isSel || o.soldOut ? price(o) : price(o).replace(/<\/div>$/, '<span class="offer__select offer__select--quiet t-label" aria-hidden="true">Select</span></div>')) + '</div>' +
+        '<div class="offer__body">' + stops(c.q, o) + (isSel ? price(o) : price(o)) + '</div>' +
         (o.soldOut ? '<div class="offer__type t-body-sm c-secondary"><span>No seats left for this window.</span></div>' : '') +
       '</div>' +
     '</div>';
@@ -3383,11 +3398,11 @@ GO.router = (function () {
         '</div>' +
         (shared && list.find(o => o.wins)
           // Shared: "How it works" opens the ride sheet of the flexible offer ("Shared, flexible pick-up time")
-          ? '<button class="link t-label" style="color: var(--color-text-secondary); font-weight: var(--font-weight-regular)" data-act="info" data-id="' + sharedShown(c, list, selId).id + '">How it works</button>' // the Shared variant on the card: Fixed time shows its exact time, Flex its window
+          ? '<button class="link t-label" style="color: color-mix(in srgb, var(--color-text-primary) 70%, var(--color-text-secondary)); font-weight: var(--font-weight-regular); font-size: calc(var(--font-size-label) * 1.08)" data-act="info" data-id="' + sharedShown(c, list, selId).id + '">How it works</button>' // the Shared variant on the card: Fixed time shows its exact time, Flex its window
           : !shared && list[0]
             // Private: "What's included" opens the same ride sheet as Shared, for the private offer
-            ? '<button class="link t-label" style="color: var(--color-text-secondary); font-weight: var(--font-weight-regular)" data-act="info" data-id="' + list[0].id + '">What’s included</button>'
-            : '<button class="link t-label" style="color: var(--color-text-secondary); font-weight: var(--font-weight-regular)" data-act="about" data-kind="' + kind + '">' + (shared ? 'How it works' : 'What’s included') + '</button>') +
+            ? '<button class="link t-label" style="color: color-mix(in srgb, var(--color-text-primary) 70%, var(--color-text-secondary)); font-weight: var(--font-weight-regular); font-size: calc(var(--font-size-label) * 1.08)" data-act="info" data-id="' + list[0].id + '">What’s included</button>'
+            : '<button class="link t-label" style="color: color-mix(in srgb, var(--color-text-primary) 70%, var(--color-text-secondary)); font-weight: var(--font-weight-regular); font-size: calc(var(--font-size-label) * 1.08)" data-act="about" data-kind="' + kind + '">' + (shared ? 'How it works' : 'What’s included') + '</button>') +
       '</div>';
     return '<section class="offer-group" aria-labelledby="g-' + kind + '">' +
       '<div class="offer-group__list" role="radiogroup" aria-labelledby="g-' + kind + '">' + (shared ? sharedCard(c, list, selId, head) : list.map(o => cardA(c, o, o.id === selId, '', head)).join('')) + '</div>' +
