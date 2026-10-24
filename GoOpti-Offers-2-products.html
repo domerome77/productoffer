@@ -1933,7 +1933,9 @@ GO.api = (function () {
     // from the airport it is the pick-up time.
     const dropBy = toAirport || !isAirport(from);
     const SHARED_DUR = 170; // every shared ride: 2h 50m
-    const latest = dropBy ? t - SHARED_DUR : t;
+    // shared departures leave on the quarter hour: 10:00 drop-off − 2h 50m = 07:10 → fixed time 07:00, windows end at 07:00
+    const t0 = t; // the searched time (latest drop-off when going to the airport)
+    const latest = dropBy ? Math.floor((t - SHARED_DUR) / 15) * 15 : t;
     const h = hash((from.twin || from.id) + (to.twin || to.id) + s.date); // twin: the same spot under another id (a street without a number)
     const scenario = s.offersScenario || (h % 13 === 0 ? 'empty' : h % 4 === 0 ? 'soldout' : 'normal');
     // private goes direct: 15 min shorter than shared (Ljubljana > Venice: 2h 30m, 05:30 > 08:00)
@@ -1962,7 +1964,11 @@ GO.api = (function () {
         }
         shared.push(mk(id, { kind: 'flex', window: w, pickFrom: latest - w, pickTo: latest, unit: b.shared[id] }));
       });
-      if (latest >= EARLIEST_PICKUP) shared.push(mk('fixed', { kind: 'fixed', pickFrom: latest, pickTo: latest, unit: b.shared.fixed }));
+      if (latest >= EARLIEST_PICKUP) {
+        const fx = mk('fixed', { kind: 'fixed', pickFrom: latest, pickTo: latest, unit: b.shared.fixed });
+        if (t0 > fx.arrival) { fx.arrival = t0; fx.dur = t0 - latest; } // fixed time arrives at the searched drop-off (10:00)
+        shared.push(fx);
+      }
     } else {
       // From the airport: windows start at the pick-up time (after landing, a little later)
       const p = s.landing ? Math.ceil((t + AFTER_LANDING) / 15) * 15 : t;
@@ -1971,12 +1977,15 @@ GO.api = (function () {
       const fo = mk('flex1', { kind: 'flex', window: ww, pickFrom: p, pickTo: p + ww, unit: wins.find(x => x[0] === ww)[1] });
       fo.wins = wins.map(([m, u]) => ({ w: m, unit: u }));
       shared.push(fo);
-      shared.push(mk('fixed', { kind: 'fixed', pickFrom: p, pickTo: p, unit: b.shared.fixed }));
+      const fxo = mk('fixed', { kind: 'fixed', pickFrom: p, pickTo: p, unit: b.shared.fixed });
+      shared.push(fxo);
       latestPrivate = p;
     }
+    // every shared ride arrives at the searched latest drop-off (10:00); the ride time absorbs the quarter-hour rounding
+    if (dropBy) shared.forEach(o => { if (t0 > o.arrival) { o.dur += t0 - o.arrival; o.arrival = t0; } });
     if (!dropBy || latest >= EARLIEST_PICKUP) {
       const van = pax > 3 ? 1.35 : 1; // bigger vehicle for 4+
-      const pp = latestPrivate; // private picks up at the same time as shared fixed (07:10), arrives earlier // same drop-off as shared, later pick-up
+      const pp = dropBy ? t - PRIV_DUR : latestPrivate; // private arrives at the searched drop-off (10:00), pick-up = 10:00 − 2h 30m // same drop-off as shared, later pick-up
       priv.push(mk('private', { kind: 'private', pickFrom: pp, pickTo: pp, unit: Math.round(b.priv * van) }));
     }
 
