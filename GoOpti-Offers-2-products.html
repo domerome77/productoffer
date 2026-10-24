@@ -762,6 +762,23 @@ img, svg { display: block; }
 .offer-group + .offer-group { margin-top: var(--space-16); }
 .offer .offer__head { position: relative; z-index: 1; pointer-events: none; padding-bottom: var(--space-4); margin-top: calc(var(--space-12) - var(--layout-card-padding)); } /* 12px above = 4 + 8 below */
 .offer .offer__head .link { pointer-events: auto; }
+/* --- motion & trust polish (v5) --- */
+@keyframes go-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes go-pop { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes go-settle { from { transform: scale(.94); } to { transform: scale(1); } }
+@keyframes go-ring { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-action-success) 14%, transparent), 0 8px 20px -10px color-mix(in srgb, var(--color-action-success) 50%, transparent); } to { box-shadow: 0 0 0 3px transparent, 0 8px 20px -10px color-mix(in srgb, var(--color-action-success) 50%, transparent); } }
+@keyframes go-price { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.offer { box-shadow: 0 1px 2px rgba(16, 24, 40, .05); transition: transform .12s ease-out; }
+.offer:active { transform: scale(.992); }
+.offer.is-selected { box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--color-action-success) 50%, transparent); }
+.offer.is-selected:not(.is-intro) { animation: go-ring .4s ease-out; } /* very subtle: replays on every window change */
+.offer.is-intro { animation: go-rise .45s cubic-bezier(.2, .7, .2, 1) both; }
+.offer-group + .offer-group .offer.is-intro { animation-delay: .09s; }
+.offer.is-selected .offer__tick { animation: go-pop .34s cubic-bezier(.2, .8, .3, 1.2) both; }
+.offer.is-selected .offer__amount { animation: go-price .28s ease-out; }
+.offer.is-selected .shv__opt[aria-checked="true"] { animation: go-settle .22s ease-out; }
+.offer.is-intro .offer__tick, .offer.is-intro .offer__amount { animation-delay: .35s; }
+@media (prefers-reduced-motion: reduce) { .offer, .offer * { animation: none !important; transition: none !important; } }
 .offer-group + .offer-group { margin-top: 0; }
 .offer-group__id { display: flex; align-items: center; gap: var(--space-12); min-width: 0; }
 .offer-group__tile { flex-shrink: 0; width: 24px; height: 40px; border-radius: 0; display: flex; align-items: center; justify-content: center; }
@@ -829,7 +846,7 @@ img, svg { display: block; }
 @media (hover: hover) { .offer:hover .offer__select { background: var(--color-bg-subtle); } }
 .offer__select--quiet { opacity: .55; border-color: var(--color-border-input); color: var(--color-text-secondary); background: transparent; }
 @media (hover: hover) { .offer:hover .offer__select--quiet { opacity: 1; } }
-.shv { position: relative; z-index: 1; pointer-events: auto; display: flex; flex-direction: column; gap: var(--space-4); margin-top: calc(-1 * var(--space-4)); margin-bottom: var(--space-8); }
+.shv { position: relative; z-index: 1; pointer-events: auto; display: flex; flex-direction: column; gap: var(--space-4); margin-top: calc(-1 * var(--space-8)); margin-bottom: var(--space-8); }
 .shv__head { display: flex; justify-content: space-between; gap: var(--space-8); }
 .offer:not(.is-selected) .shv__head .t-label-lg { color: var(--color-text-tertiary); }
 .offer:not(.is-selected) .shv__opt .t-label, .offer:not(.is-selected) .shv__opt .t-caption { color: var(--color-text-tertiary); } /* grey like the rest while Shared isn't picked */
@@ -3241,7 +3258,10 @@ GO.router = (function () {
 
   // Variant A: route rail with places, price on the right, ride type and (i) below
   function cardA(c, o, isSel, extra, head) {
-    return '<div class="offer' + (isSel ? ' is-selected' : '') + (o.soldOut ? ' is-off' : '') + '">' + hit(o, isSel) +
+    // entrance motion only the first time a result set is shown, not on every re-render
+    const intro = c.data && GO.__introKey !== c.data.key;
+    if (intro && !GO.__introT) GO.__introT = setTimeout(() => { GO.__introKey = c.data.key; GO.__introT = null; }, 60);
+    return '<div class="offer' + (isSel ? ' is-selected' : '') + (o.soldOut ? ' is-off' : '') + (intro ? ' is-intro' : '') + '">' + hit(o, isSel) +
       badge(o, isSel) +
       // content (gap 8): body, then footer with captions (body-sm, one style) and (i) on the first line
       '<div class="offer__content">' +
