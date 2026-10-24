@@ -3660,7 +3660,7 @@ GO.router = (function () {
           ? 'Odhod med ' + fromMin(o.pickFrom) + ' in ' + fromMin(o.pickTo) + ' po pristanku letala. Letalo zamuja? Počakamo vas.'
           : 'Odhod ob ' + fromMin(o.pickFrom) + ' po pristanku letala. Letalo zamuja? Počakamo vas.']
       : ['clock', o.kind === 'flex'
-          ? '<strong style="font-weight: var(--font-weight-bold)">Točno uro odhoda</strong> med ' + fromMin(o.pickFrom) + ' in ' + fromMin(o.pickTo) + ' prejmete prek SMS-a, e-pošte in aplikacije dan pred prevozom.'
+          ? '<strong style="font-weight: var(--font-weight-bold)">GoOpti izbere točno uro odhoda</strong> med ' + fromMin(o.pickFrom) + ' in ' + fromMin(o.pickTo) + '. Obvestilo o tem prejmete prek SMS-a, e-pošte in aplikacije dan pred prevozom.'
           : o.kind === 'private'
             ? '<strong style="font-weight: var(--font-weight-bold)">Voznik vas prevzame ob ' + fromMin(o.pickFrom) + '</strong>. Točno uro odhoda prejmete prek SMS-a, e-pošte in aplikacije dan pred prevozom.'
             : '<strong style="font-weight: var(--font-weight-bold)">Voznik vas prevzame ob ' + fromMin(o.pickFrom) + '</strong> (±15 min). Točno uro odhoda prejmete prek SMS-a, e-pošte in aplikacije dan pred prevozom.'];
@@ -3671,7 +3671,7 @@ GO.router = (function () {
          ['waving', 'Pričakanje s tablico z imenom je vključeno'],
          ['driver', q.landing ? 'Izkušen in zanesljiv voznik vas pripelje na vaš naslov.' : 'Izkušen in zanesljiv voznik vas prevzame na vašem naslovu.']]
       : [first,
-         ['shuttle', 'Prevoz si lahko delite z drugimi potniki, z nekaj kratkimi postanki na poti.'],
+         ['shuttle', 'Prevoz si delite z drugimi potniki, z nekaj kratkimi postanki na poti.'],
          ['driver', q.landing ? 'Izkušen in zanesljiv voznik vas pripelje na vaš naslov.' : 'Izkušen in zanesljiv voznik vas prevzame na vašem naslovu.'],
          ['plane', arrive]];
     items.push(['check-circle', cancel]);
