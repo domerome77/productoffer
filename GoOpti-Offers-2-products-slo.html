@@ -3274,7 +3274,7 @@ GO.router = (function () {
     const opts = [];
     const fx = list.find(o => o.kind === 'fixed');
     if (fx) opts.push({ id: fx.id, w: 0, label: 'ob uri', unit: fx.unit, soldOut: fx.soldOut });
-    list.filter(o => o.wins).forEach(o => o.wins.forEach(x => opts.push({ id: o.id, w: x.w, label: (x.w / 60) + ' h okno', unit: x.unit, soldOut: o.soldOut })));
+    list.filter(o => o.wins).forEach(o => o.wins.forEach(x => opts.push({ id: o.id, w: x.w, label: (x.w / 60) + 'h okno', unit: x.unit, soldOut: o.soldOut })));
     return opts;
   }
   function sharedShown(c, list, selId) {
