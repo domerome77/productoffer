@@ -1345,7 +1345,7 @@ ul.place-list { list-style: none; }
 .offer:not(.is-selected) .offer__num { color: var(--color-text-primary); }
 .rail__dot { box-shadow: 0 0 0 3px var(--color-bg-page); }
 .offer.is-selected .rail__dot { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-bg-success-subtle) 45%, var(--color-bg-page)); }
-.shv__opts { padding: 3px; border-radius: 14px; background: color-mix(in srgb, var(--color-text-primary) 2.5%, var(--color-bg-page)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-text-primary) 7%, transparent); gap: 3px; }
+.shv__opts { padding: 3px; border-radius: 14px; background: color-mix(in srgb, var(--color-text-primary) 1%, var(--color-bg-page)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-text-primary) 7%, transparent); gap: 3px; }
 .offer:not(.is-selected) .shv__opt .t-label { color: var(--color-text-secondary) !important; }
 .offer:not(.is-selected) .shv__opt .t-caption { color: var(--color-text-secondary) !important; }
 .shv__opt, .shv__opt + .shv__opt { margin-left: 0; border: 0 !important; border-radius: 11px !important; background: transparent; min-height: 52px; transition: background-color .2s ease, box-shadow .2s ease, color .2s ease; }
@@ -1363,6 +1363,16 @@ ul.place-list { list-style: none; }
 .cta-inline__btn:active { transform: scale(.98); }
 @media (hover: hover) { .cta-inline__btn:hover { filter: brightness(1.05); } }
 @media (prefers-reduced-motion: reduce) { .offer, .shv__opt, .cta-inline__btn { transition: none; } }
+
+/* selected window: outlined in green like the selected card, no solid fill */
+.offer.is-selected .shv__opt[aria-checked="true"] { background: var(--color-bg-page) !important; color: var(--color-text-primary) !important; box-shadow: inset 0 0 0 2px var(--color-action-success) !important; filter: none; }
+.offer.is-selected .shv__opt[aria-checked="true"] .t-label { color: var(--color-text-success) !important; font-weight: var(--font-weight-bold); }
+.offer.is-selected .shv__opt[aria-checked="true"] .t-caption { color: var(--color-text-primary) !important; }
+.offer.is-selected .shv__opt[aria-checked="true"] .shv__pct { background: var(--color-bg-success-subtle) !important; color: var(--color-text-success) !important; }
+
+/* window steps: prices a little darker */
+.shv__opt .t-caption, .offer:not(.is-selected) .shv__opt .t-caption { color: color-mix(in srgb, var(--color-text-primary) 72%, var(--color-text-secondary)) !important; }
+.offer.is-selected .shv__opt[aria-checked="true"] .t-caption { color: var(--color-text-primary) !important; }
 </style>
 
 </head>
